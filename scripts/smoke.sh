@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-BASE="${BASE:-http://localhost:8082}"
+BASE="${BASE_URL:-${BASE:-http://localhost:8082}}"
+OPEN_KEY="${BOM_OPEN_API_KEY:-}"
 RUN_ID="$(date +%s)"
 P1="9${RUN_ID: -9}"
 P2="8${RUN_ID: -9}"
@@ -12,6 +13,18 @@ step(){ echo "[smoke] $1"; }
 step "login"
 TOKEN=$(json -X POST "$BASE/api/auth/login" -H 'Content-Type: application/json' -d '{"username":"admin","password":"admin123"}' | jq -r '.data.token')
 test -n "$TOKEN" -a "$TOKEN" != null
+DEMO_ECN=$(api "$BASE/api/ecns" | jq -r '.data[] | select(.ecnNo == "ECN-DEMO-001") | .id' | head -1)
+if test -n "$DEMO_ECN"; then
+    DEMO_STATUS=$(api "$BASE/api/ecns/$DEMO_ECN" | jq -r '.data.status')
+    if test "$DEMO_STATUS" = "DRAFT"; then
+        step "implement demo ECN"
+        api -X POST "$BASE/api/ecns/$DEMO_ECN/submit" | assert_ok
+        api -X POST "$BASE/api/ecns/$DEMO_ECN/approve" | assert_ok
+        api -X POST "$BASE/api/ecns/$DEMO_ECN/implement" | assert_ok
+    else
+        test "$DEMO_STATUS" = "IMPLEMENTED"
+    fi
+fi
 step "create part"
 PART_PAYLOAD="{\"partNo\":\"$P1\",\"revision\":\"A\",\"partName\":\"Smoke Part\",\"partType\":\"PART\",\"category\":\"BODY\",\"uom\":\"EA\",\"makeBuy\":\"MAKE\",\"unitCost\":12,\"weightKg\":1}"
 PART=$(api -X POST "$BASE/api/parts" -H 'Content-Type: application/json' -d "$PART_PAYLOAD" | tee /tmp/bom-part.json)
@@ -86,13 +99,14 @@ step "implement ECN"
 IMPLEMENTED=$(api -X POST "$BASE/api/ecns/$ECNID/implement")
 NEWBOMID=$(jq -r '.data.implementedBomId' <<<"$IMPLEMENTED"); test "$NEWBOMID" != null
 step "verify implemented BOM version"
-api "$BASE/api/boms/$NEWBOMID" | jq -e '.code == 0 and .data.version == 2 and .data.status == "RELEASED"' >/dev/null
+OLD_BOM_NO=$(api "$BASE/api/boms/$BID" | jq -r '.data.bomNo')
+api "$BASE/api/boms/$NEWBOMID" | jq -e --arg bomNo "$OLD_BOM_NO" '.code == 0 and .data.version == 2 and .data.status == "RELEASED" and .data.bomNo == $bomNo' >/dev/null
 api "$BASE/api/boms/$BID" | jq -e '.code == 0 and .data.status == "OBSOLETE"' >/dev/null
 step "sync BOM to SAP"
 api -X POST "$BASE/api/boms/$NEWBOMID/sync-sap" | jq -e '.code == 0 and .data.sapBomNo != null' >/dev/null
 NEW_NO=$(api "$BASE/api/boms/$NEWBOMID" | jq -r '.data.bomNo')
 step "open API with key"
-api "$BASE/api/open/boms/$NEW_NO/explode" -H 'X-Api-Key: bom-open-key' | assert_ok
+api "$BASE/api/open/boms/$NEW_NO/explode" -H "X-Api-Key: $OPEN_KEY" | assert_ok
 step "open API without key"
 set +e
 BAD=$(curl -sS -o /dev/null -w '%{http_code}' "$BASE/api/open/boms/$NEW_NO/explode")

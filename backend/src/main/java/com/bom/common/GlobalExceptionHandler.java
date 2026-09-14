@@ -6,22 +6,26 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import javax.servlet.http.HttpServletResponse;
 import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(BizException.class)
-public R<Void> biz(BizException e) {
+    public R<Void> biz(BizException e, HttpServletResponse response) {
+        response.setStatus(400);
         return R.fail(400, e.getMessage());
     }
     @ExceptionHandler(MethodArgumentNotValidException.class)
-public R<Void> valid(MethodArgumentNotValidException e) {
+    public R<Void> valid(MethodArgumentNotValidException e, HttpServletResponse response) {
+        response.setStatus(400);
         String msg = e.getBindingResult().getFieldErrors().stream().map(f -> f.getField() + " " + f.getDefaultMessage()).collect(Collectors.joining("; "));
         return R.fail(400, msg);
     }
     @ExceptionHandler(DuplicateKeyException.class)
-public R<Void> dup(DuplicateKeyException e) {
+    public R<Void> dup(DuplicateKeyException e, HttpServletResponse response) {
+        response.setStatus(400);
         return R.fail(400, "编码已存在，请勿重复");
     }
     @ExceptionHandler(Exception.class)

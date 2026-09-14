@@ -61,15 +61,21 @@ public class TokenService {
         if (!MessageDigest.isEqual(sig, sign(body))) {
             return null;
         }
-        String[] parts = new String(Base64.getUrlDecoder().decode(body), StandardCharsets.UTF_8).split(":", 3);
-        if (parts.length != 3) {
+        try {
+            String[] parts = new String(
+                    Base64.getUrlDecoder().decode(body),
+                    StandardCharsets.UTF_8).split(":", 3);
+            if (parts.length != 3) {
+                return null;
+            }
+            long exp = Long.parseLong(parts[2]);
+            if (exp < System.currentTimeMillis()) {
+                return null;
+            }
+            return new Principal(Long.parseLong(parts[0]), parts[1], exp);
+        } catch (IllegalArgumentException exception) {
             return null;
         }
-        long exp = Long.parseLong(parts[2]);
-        if (exp < System.currentTimeMillis()) {
-            return null;
-        }
-        return new Principal(Long.parseLong(parts[0]), parts[1], exp);
     }
     private byte[] sign(String body) {
         try {

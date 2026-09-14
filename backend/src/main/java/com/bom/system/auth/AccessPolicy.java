@@ -19,6 +19,9 @@ public final class AccessPolicy {
         if (User.ADMIN.equals(role)) {
             return true;
         }
+        if (path.startsWith("/api/system/")) {
+            return false;
+        }
         if ("GET".equalsIgnoreCase(method) || "HEAD".equalsIgnoreCase(method)) {
             return true;
         }

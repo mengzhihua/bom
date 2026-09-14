@@ -4,7 +4,7 @@
       <h2>零件管理</h2>
       <div>
         <el-upload
-          v-if="canWrite()"
+          v-if="canWrite('parts')"
           :show-file-list="false"
           :http-request="importCsv"
           accept=".csv"
@@ -17,7 +17,7 @@
           导出 CSV
         </el-button>
         <el-button
-          v-if="canWrite()"
+          v-if="canWrite('parts')"
           type="primary"
           @click="open()"
         >
@@ -95,13 +95,13 @@
               详情
             </el-button>
             <el-button
-              v-if="canWrite()"
+              v-if="canWrite('parts')"
               link
               @click="open(row)"
             >
               编辑
             </el-button>
-            <el-dropdown v-if="canWrite()">
+            <el-dropdown v-if="canWrite('parts')">
               <el-button link type="primary">
                 生命周期
               </el-button>

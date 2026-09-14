@@ -22,17 +22,22 @@ export const dashboard = {
 export const master = {
   models: () => http.get('/master/vehicle-models'),
   model: (data) => http.post('/master/vehicle-models', data),
+  updateModel: (id, data) => http.put(`/master/vehicle-models/${id}`, data),
   plants: () => http.get('/master/plants'),
   plant: (data) => http.post('/master/plants', data),
+  updatePlant: (id, data) => http.put(`/master/plants/${id}`, data),
   suppliers: () => http.get('/master/suppliers'),
   supplier: (data) => http.post('/master/suppliers', data),
+  updateSupplier: (id, data) => http.put(`/master/suppliers/${id}`, data),
   features: () => http.get('/master/features'),
   feature: (data) => http.post('/master/features', data),
+  updateFeature: (id, data) => http.put(`/master/features/${id}`, data),
   options: (id) => http.get(`/master/features/${id}/options`),
   option: (id, data) => http.post(`/master/features/${id}/options`, data),
   deleteOption: (id) => http.delete(`/master/features/options/${id}`),
   workstations: (params) => http.get('/master/workstations', { params }),
-  workstation: (data) => http.post('/master/workstations', data)
+  workstation: (data) => http.post('/master/workstations', data),
+  updateWorkstation: (id, data) => http.put(`/master/workstations/${id}`, data)
 }
 
 export const parts = {
@@ -102,6 +107,9 @@ export const integration = {
 }
 
 export const system = {
-  users: crud('/system/user'),
+  users: {
+    ...crud('/system/user'),
+    list: (params) => http.get('/system/user/page', { params })
+  },
   oplog: (params) => http.get('/system/oplog/page', { params })
 }

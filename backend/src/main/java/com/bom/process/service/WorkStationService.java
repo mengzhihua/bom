@@ -23,4 +23,10 @@ public class WorkStationService {
         stations.insert(station);
         return station;
     }
+
+    public WorkStation update(Long id, WorkStation station) {
+        station.setId(id);
+        stations.updateById(station);
+        return stations.selectById(id);
+    }
 }

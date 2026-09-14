@@ -3,7 +3,7 @@
     <div class="page-title">
       <h2>配置特征与选项</h2>
       <el-button
-        v-if="canWrite()"
+        v-if="canWrite('master')"
         type="primary"
         @click="featureDialog = true"
       >
@@ -24,7 +24,7 @@
                 {{ option.optionCode }} / {{ option.optionName }}
               </el-tag>
               <el-button
-                v-if="canWrite()"
+                v-if="canWrite('master')"
                 link
                 type="primary"
                 @click="addOption(row)"

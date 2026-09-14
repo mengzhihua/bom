@@ -17,5 +17,6 @@ const columns = [
     :columns="columns"
     :load="master.models"
     :create="master.model"
+    :update="master.updateModel"
   />
 </template>

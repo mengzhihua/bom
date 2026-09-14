@@ -75,6 +75,20 @@ public class BomService {
         return header;
     }
 
+    public BomHeader update(Long id, BomHeader incoming) {
+        BomHeader current = load(id);
+        if (!"DRAFT".equals(current.getStatus())) {
+            throw new BizException("仅 DRAFT BOM 可编辑");
+        }
+        current.setDescription(incoming.getDescription());
+        current.setVehicleModelId(incoming.getVehicleModelId());
+        current.setPlantId(incoming.getPlantId());
+        current.setEffectiveFrom(incoming.getEffectiveFrom());
+        current.setEffectiveTo(incoming.getEffectiveTo());
+        headers.updateById(current);
+        return current;
+    }
+
     public BomItem add(Long id, BomItem item) {
         BomHeader header = load(id);
         if (!"DRAFT".equals(header.getStatus())) {
@@ -89,7 +103,7 @@ public class BomService {
         if (parts.selectById(item.getChildPartId()) == null) {
             throw new BizException("子零件不存在");
         }
-        if (wouldCycle(id, item.getParentPartId(), item.getChildPartId())) {
+        if (wouldCycle(id, item.getParentPartId(), item.getChildPartId(), null)) {
             throw new BizException("不允许成环");
         }
         item.setId(null);
@@ -108,11 +122,22 @@ public class BomService {
         return item;
     }
 
-    private boolean wouldCycle(Long id, Long parent, Long child) {
+    private boolean wouldCycle(
+            Long id,
+            Long parent,
+            Long child,
+            Long excludedItemId) {
         Map<Long, List<Long>> childrenByParent = new HashMap<>();
+        BomHeader header = load(id);
         for (BomItem item : itemList(id)) {
+            if (Objects.equals(item.getId(), excludedItemId)) {
+                continue;
+            }
+            Long parentId = item.getParentPartId() == null
+                    ? header.getRootPartId()
+                    : item.getParentPartId();
             childrenByParent
-                    .computeIfAbsent(item.getParentPartId(), key -> new ArrayList<>())
+                    .computeIfAbsent(parentId, key -> new ArrayList<>())
                     .add(item.getChildPartId());
         }
         Set<Long> seen = new HashSet<>();
@@ -135,6 +160,24 @@ public class BomService {
         BomHeader header = load(id);
         if (!"DRAFT".equals(header.getStatus())) {
             throw new BizException("BOM不可修改");
+        }
+        BomItem existing = items.selectOne(new QueryWrapper<BomItem>()
+                .eq("id", itemId)
+                .eq("bom_id", id));
+        if (existing == null) {
+            throw new BizException("BOM行不存在");
+        }
+        if (item.getParentPartId() == null) {
+            item.setParentPartId(header.getRootPartId());
+        }
+        if (item.getChildPartId() == null
+                || parts.selectById(item.getChildPartId()) == null) {
+            throw new BizException("子零件不存在");
+        }
+        if (Objects.equals(item.getParentPartId(), item.getChildPartId())
+                || wouldCycle(id, item.getParentPartId(), item.getChildPartId(),
+                itemId)) {
+            throw new BizException("不允许成环");
         }
         item.setId(itemId);
         item.setBomId(id);
@@ -197,7 +240,7 @@ public class BomService {
         BomHeader header = new BomHeader();
         BeanUtils.copyProperties(old, header);
         header.setId(null);
-        header.setBomNo(codes.next("BOM").replace("-", ""));
+        header.setBomNo(old.getBomNo());
         header.setVersion(old.getVersion() + 1);
         header.setStatus("DRAFT");
         headers.insert(header);
@@ -211,6 +254,35 @@ public class BomService {
         return header;
     }
 
+    @Transactional
+    public BomHeader deriveMbom(
+            Long id,
+            Long plantId,
+            String description) {
+        BomHeader source = load(id);
+        if (!"EBOM".equals(source.getBomType())) {
+            throw new BizException("仅 EBOM 可派生");
+        }
+        BomHeader target = new BomHeader();
+        BeanUtils.copyProperties(source, target);
+        target.setId(null);
+        target.setBomNo(null);
+        target.setBomType("MBOM");
+        target.setPlantId(plantId);
+        target.setDescription(description);
+        target.setSourceBomId(id);
+        target.setStatus("DRAFT");
+        target = create(target);
+        for (BomItem sourceItem : itemList(id)) {
+            BomItem item = new BomItem();
+            BeanUtils.copyProperties(sourceItem, item);
+            item.setId(null);
+            item.setBomId(target.getId());
+            items.insert(item);
+        }
+        return target;
+    }
+
     public List<Map<String, Object>> explode(
             Long id,
             Integer maxLevel,
@@ -218,7 +290,8 @@ public class BomService {
         BomContext context = context(id);
         List<Map<String, Object>> output = new ArrayList<>();
         walk(context, context.header.getRootPartId(), BigDecimal.ONE, 0, "",
-                output, maxLevel == null ? 99 : maxLevel, selections);
+                output, maxLevel == null ? 99 : maxLevel, selections,
+                new HashSet<>(Collections.singleton(context.header.getRootPartId())));
         return output;
     }
 
@@ -228,7 +301,8 @@ public class BomService {
         for (BomItem item : context.childrenByParent
                 .getOrDefault(context.header.getRootPartId(), Collections.emptyList())) {
             Map<String, Object> node = node(context, item, BigDecimal.ONE, 1, "",
-                    selections);
+                    selections,
+                    new HashSet<>(Collections.singleton(context.header.getRootPartId())));
             if (node != null) {
                 output.add(node);
             }
@@ -244,21 +318,27 @@ public class BomService {
             String path,
             List<Map<String, Object>> output,
             int maxLevel,
-            Map<String, String> selections) {
+            Map<String, String> selections,
+            Set<Long> pathVisited) {
         if (level >= maxLevel) {
             return;
         }
         for (BomItem item : context.childrenByParent
                 .getOrDefault(parent, Collections.emptyList())) {
+            if (!pathVisited.add(item.getChildPartId())) {
+                continue;
+            }
             Map<String, Object> value = node(context, item, factor, level + 1,
-                    path, selections);
+                    path, selections, pathVisited);
             if (value == null) {
+                pathVisited.remove(item.getChildPartId());
                 continue;
             }
             output.add(value);
             walk(context, item.getChildPartId(), factor.multiply(item.getQty()),
                     level + 1, String.valueOf(value.get("path")), output,
-                    maxLevel, selections);
+                    maxLevel, selections, pathVisited);
+            pathVisited.remove(item.getChildPartId());
         }
     }
 
@@ -268,7 +348,8 @@ public class BomService {
             BigDecimal factor,
             int level,
             String path,
-            Map<String, String> selections) {
+            Map<String, String> selections,
+            Set<Long> pathVisited) {
         if (selections != null
                 && !UsageConditionEvaluator.evaluate(item.getUsageCondition(),
                 selections)) {
@@ -301,12 +382,16 @@ public class BomService {
         List<Map<String, Object>> children = new ArrayList<>();
         for (BomItem child : context.childrenByParent
                 .getOrDefault(item.getChildPartId(), Collections.emptyList())) {
+            if (!pathVisited.add(child.getChildPartId())) {
+                continue;
+            }
             Map<String, Object> childNode = node(context, child,
                     factor.multiply(item.getQty()), level + 1, itemPath,
-                    selections);
+                    selections, pathVisited);
             if (childNode != null) {
                 children.add(childNode);
             }
+            pathVisited.remove(child.getChildPartId());
         }
         value.put("children", children);
         return value;
@@ -340,14 +425,15 @@ public class BomService {
                 .stream()
                 .collect(Collectors.toMap(WorkStation::getStationCode,
                         WorkStation::getStationName, (left, right) -> left));
-        Map<String, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
+            Map<String, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
         BomContext context = context(id);
         for (BomItem item : context.items) {
             String stationCode = item.getStationCode() == null
                     ? "UNASSIGNED"
                     : item.getStationCode();
             Map<String, Object> row = node(context, item, BigDecimal.ONE, 1, "",
-                    null);
+                    null,
+                    new HashSet<>());
             grouped.computeIfAbsent(stationCode, key -> new ArrayList<>()).add(row);
         }
         Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();

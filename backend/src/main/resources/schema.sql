@@ -155,7 +155,7 @@ CREATE TABLE IF NOT EXISTS bom_part_document (
 
 CREATE TABLE IF NOT EXISTS bom_header (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    bom_no VARCHAR(32) UNIQUE NOT NULL,
+    bom_no VARCHAR(32) NOT NULL,
     bom_type VARCHAR(16),
     root_part_id BIGINT,
     vehicle_model_id BIGINT,

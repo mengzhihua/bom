@@ -15,6 +15,8 @@ import com.bom.master.entity.VehicleModel;
 import com.bom.master.mapper.PartMapper;
 import com.bom.master.mapper.PlantMapper;
 import com.bom.master.mapper.VehicleModelMapper;
+import com.bom.system.auth.CurrentUser;
+import com.bom.system.entity.User;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -66,6 +68,7 @@ public class BomController {
 
     @PostMapping
     public R<BomHeader> create(@RequestBody BomHeader header) {
+        requireWrite(header.getBomType());
         return R.ok(service.create(header));
     }
 
@@ -73,8 +76,9 @@ public class BomController {
     public R<BomHeader> update(
             @PathVariable Long id,
             @RequestBody BomHeader header) {
-        header.setId(id);
-        headers.updateById(header);
+        BomHeader current = service.load(id);
+        requireWrite(current.getBomType());
+        service.update(id, header);
         return get(id);
     }
 
@@ -87,6 +91,7 @@ public class BomController {
     public R<BomItem> add(
             @PathVariable Long id,
             @RequestBody BomItem item) {
+        requireWrite(service.load(id).getBomType());
         return R.ok(service.add(id, item));
     }
 
@@ -95,6 +100,7 @@ public class BomController {
             @PathVariable Long id,
             @PathVariable Long itemId,
             @RequestBody BomItem item) {
+        requireWrite(service.load(id).getBomType());
         return R.ok(service.updateItem(id, itemId, item));
     }
 
@@ -102,6 +108,7 @@ public class BomController {
     public R<Void> delete(
             @PathVariable Long id,
             @PathVariable Long itemId) {
+        requireWrite(service.load(id).getBomType());
         if (!"DRAFT".equals(service.load(id).getStatus())) {
             throw new BizException("BOM不可修改");
         }
@@ -161,6 +168,7 @@ public class BomController {
     public R<Map<String, Object>> importCsv(
             @PathVariable Long id,
             @RequestPart("file") MultipartFile file) {
+        requireWrite(service.load(id).getBomType());
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("count", service.importCsv(id, file));
         return R.ok(result);
@@ -173,21 +181,25 @@ public class BomController {
 
     @PostMapping("/{id}/release")
     public R<BomHeader> release(@PathVariable Long id) {
+        requireWrite(service.load(id).getBomType());
         return R.ok(service.transition(id, "DRAFT", "RELEASED"));
     }
 
     @PostMapping("/{id}/freeze")
     public R<BomHeader> freeze(@PathVariable Long id) {
+        requireWrite(service.load(id).getBomType());
         return R.ok(service.transition(id, "RELEASED", "FROZEN"));
     }
 
     @PostMapping("/{id}/obsolete")
     public R<BomHeader> obsolete(@PathVariable Long id) {
+        requireWrite(service.load(id).getBomType());
         return R.ok(service.transition(id, "RELEASED", "OBSOLETE"));
     }
 
     @PostMapping("/{id}/new-version")
     public R<BomHeader> newVersion(@PathVariable Long id) {
+        requireWrite(service.load(id).getBomType());
         return R.ok(service.newVersion(id));
     }
 
@@ -195,6 +207,7 @@ public class BomController {
     public R<Map<String, Object>> configure(
             @PathVariable Long id,
             @RequestBody Config config) {
+        requireWrite(service.load(id).getBomType());
         Map<String, Object> result = new LinkedHashMap<>();
         List<Map<String, Object>> exploded = service.explode(
                 id,
@@ -254,28 +267,13 @@ public class BomController {
         if (!"EBOM".equals(source.getBomType())) {
             throw new BizException("仅 EBOM 可派生");
         }
-        BomHeader target = new BomHeader();
-        BeanUtils.copyProperties(source, target);
-        target.setId(null);
-        target.setBomNo(null);
-        target.setBomType("MBOM");
-        target.setPlantId(derive.plantId);
-        target.setDescription(derive.description);
-        target.setSourceBomId(id);
-        target.setStatus("DRAFT");
-        target = service.create(target);
-        for (BomItem sourceItem : service.itemList(id)) {
-            BomItem item = new BomItem();
-            BeanUtils.copyProperties(sourceItem, item);
-            item.setId(null);
-            item.setBomId(target.getId());
-            items.insert(item);
-        }
-        return R.ok(target);
+        requireWrite("MBOM");
+        return R.ok(service.deriveMbom(id, derive.plantId, derive.description));
     }
 
     @PostMapping("/{id}/sync-sap")
     public R<BomHeader> sync(@PathVariable Long id) {
+        requireWrite(service.load(id).getBomType());
         return R.ok(sap.syncBom(id));
     }
 
@@ -309,9 +307,30 @@ public class BomController {
             value.put("findNo", item.getFindNo());
             value.put("usageCondition", item.getUsageCondition());
             value.put("stationCode", item.getStationCode());
-            output.put(item.getParentPartId() + "-" + item.getChildPartId(), value);
+            String key = String.join("-",
+                    java.util.Objects.toString(item.getParentPartId(), ""),
+                    java.util.Objects.toString(item.getChildPartId(), ""),
+                    java.util.Objects.toString(item.getFindNo(), ""),
+                    java.util.Objects.toString(item.getUsageCondition(), ""),
+                    java.util.Objects.toString(item.getAlternateGroup(), ""));
+            output.put(key, value);
         }
         return output;
+    }
+
+    private void requireWrite(String bomType) {
+        User user = CurrentUser.get();
+        if (user == null || User.ADMIN.equals(user.getRole())) {
+            return;
+        }
+        if (User.ENGINEER.equals(user.getRole())
+                && ("EBOM".equals(bomType) || "SBOM".equals(bomType))) {
+            return;
+        }
+        if (User.PLANNER.equals(user.getRole()) && "MBOM".equals(bomType)) {
+            return;
+        }
+        throw new BizException("当前角色无权修改 " + bomType + " BOM");
     }
 
     private Map<String, Object> diff(

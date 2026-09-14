@@ -38,26 +38,26 @@
       </el-descriptions>
       <div class="actions">
         <el-button
-          v-if="canWrite() && ecn.status === 'DRAFT'"
+          v-if="canWrite('ecn') && ecn.status === 'DRAFT'"
           @click="act('submit')"
         >
           提交
         </el-button>
         <el-button
-          v-if="canWrite() && ecn.status === 'SUBMITTED'"
+          v-if="canWrite('ecn') && ecn.status === 'SUBMITTED'"
           @click="act('approve')"
         >
           审批
         </el-button>
         <el-button
-          v-if="canWrite() && ecn.status === 'APPROVED'"
+          v-if="canWrite('ecn') && ecn.status === 'APPROVED'"
           type="primary"
           @click="act('implement')"
         >
           实施
         </el-button>
         <el-button
-          v-if="canWrite() && ecn.status === 'DRAFT'"
+          v-if="canWrite('ecn') && ecn.status === 'DRAFT'"
           @click="openEdit"
         >
           编辑
@@ -117,7 +117,7 @@
         <div class="card-header">
           <span>ECN 变更明细</span>
           <el-button
-            v-if="canWrite() && ecn.status === 'DRAFT'"
+            v-if="canWrite('ecn') && ecn.status === 'DRAFT'"
             type="primary"
             @click="openItem"
           >

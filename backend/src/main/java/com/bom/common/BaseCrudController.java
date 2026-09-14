@@ -47,7 +47,7 @@ public R<Page<T>> page(
         }
         applyFilters(qw, params);
         qw.orderByDesc("id");
-        return R.ok(mapper.selectPage(new Page<>(current, size), qw));
+        return R.ok(mapper.selectPage(new Page<>(current, Math.min(size, 200)), qw));
     }
     @GetMapping("/list")
 public R<List<T>> list(

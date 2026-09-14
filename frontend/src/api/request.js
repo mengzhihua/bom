@@ -39,7 +39,10 @@ http.interceptors.response.use(
   },
   (err) => {
     const status = err.response?.status
-    const msg = err.response?.data?.msg || err.message || '网络错误'
+    const msg = err.response?.data?.msg
+      || err.response?.data?.message
+      || err.message
+      || '网络错误'
     if (status === 401) {
       ElMessage.warning(msg)
       toLogin()

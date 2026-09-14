@@ -378,7 +378,9 @@ const itemForm = reactive({
   findNo: null
 })
 
-const canWriteRole = computed(() => canWrite())
+const canWriteRole = computed(() => canWrite(
+  header.value.bomType === 'MBOM' ? 'mbom' : 'ebom'
+))
 const parentLabel = computed(() => {
   if (parentNode.value) {
     return `${parentNode.value.partNo} ${parentNode.value.partName}`

@@ -49,9 +49,11 @@
       <el-table :data="where" border>
         <el-table-column prop="bomNo" label="BOM 号" />
         <el-table-column prop="bomType" label="类型" />
-        <el-table-column prop="parentPart" label="父件" />
-        <el-table-column prop="rootPart" label="顶层件" />
+        <el-table-column prop="parentPartNo" label="父件号" />
+        <el-table-column prop="parentPartName" label="父件名称" />
+        <el-table-column prop="rootPartNo" label="顶层件" />
         <el-table-column prop="qty" label="数量" />
+        <el-table-column prop="level" label="层级" />
         <el-table-column prop="path" label="层级路径" />
       </el-table>
     </el-card>
