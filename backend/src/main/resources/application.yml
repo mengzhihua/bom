@@ -1,0 +1,45 @@
+server:
+  port: 8082
+spring:
+  application:
+    name: bom-backend
+  datasource:
+    url: jdbc:h2:file:./data/bom;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+      data-locations: classpath:data.sql
+      continue-on-error: true
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+logging:
+  level:
+    com.bom: info
+bom:
+  auth:
+    secret: ${BOM_AUTH_SECRET:}
+    token-ttl: ${BOM_TOKEN_TTL:12h}
+    admin-password: ${BOM_ADMIN_PASSWORD:admin123}
+  cors:
+    origins: ${BOM_CORS_ORIGINS:http://localhost:5175}
+  sap:
+    mode: ${BOM_SAP_MODE:mock}
+    base-url: ${BOM_SAP_BASE_URL:}
+    username: ${BOM_SAP_USERNAME:}
+    password: ${BOM_SAP_PASSWORD:}
+  open:
+    api-key: ${BOM_OPEN_API_KEY:bom-open-key}
