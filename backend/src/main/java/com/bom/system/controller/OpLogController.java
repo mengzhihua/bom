@@ -27,6 +27,6 @@ public R<Page<OpLog>> page(
                 .eq(StringUtils.isNotBlank(username), OpLog::getUsername, username)
                 .like(StringUtils.isNotBlank(keyword), OpLog::getPath, keyword)
                 .orderByDesc(OpLog::getId);
-        return R.ok(mapper.selectPage(new Page<>(current, size), qw));
+        return R.ok(mapper.selectPage(new Page<>(current, Math.min(size, 200)), qw));
     }
 }

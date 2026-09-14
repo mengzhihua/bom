@@ -18,7 +18,7 @@ public class IntegrationController {
 public R<Page<IntegrationLog>> logs(
     @RequestParam(defaultValue = "1") long current,
     @RequestParam(defaultValue = "20") long size) {
-        return R.ok(logs.selectPage(new Page<>(current, size), new QueryWrapper<IntegrationLog>().orderByDesc("id")));
+        return R.ok(logs.selectPage(new Page<>(current, Math.min(size, 200)), new QueryWrapper<IntegrationLog>().orderByDesc("id")));
     }
     @PostMapping("/logs/{id}/retry")
 public R<IntegrationLog> retry(

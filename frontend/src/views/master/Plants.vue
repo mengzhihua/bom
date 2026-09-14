@@ -16,5 +16,6 @@ const columns = [
     :columns="columns"
     :load="master.plants"
     :create="master.plant"
+    :update="master.updatePlant"
   />
 </template>

@@ -17,14 +17,20 @@ import java.util.*;
 public class OpenBomController {
     private final BomHeaderMapper headers;
     private final BomService service;
-    @Value("${bom.open.api-key:bom-open-key}")
-private String key;
+    @Value("${bom.open.api-key:}")
+    private String key;
     @GetMapping("/{bomNo}/explode")
 public R<List<Map<String, Object>>> explode(
     @PathVariable String bomNo,
     @RequestHeader(value = "X-Api-Key", required = false) String api) {
-        if (!key.equals(api)) throw new BizException("无效的 API Key");
-        BomHeader h = headers.selectOne(new QueryWrapper<BomHeader>().eq("bom_no", bomNo));
+        if (key == null || key.isEmpty() || !key.equals(api)) {
+            throw new BizException("无效的 API Key");
+        }
+        BomHeader h = headers.selectOne(new QueryWrapper<BomHeader>()
+                .eq("bom_no", bomNo)
+                .eq("status", "RELEASED")
+                .orderByDesc("version")
+                .last("LIMIT 1"));
         if (h == null || !"RELEASED".equals(h.getStatus())) throw new BizException("已发布 BOM 不存在");
         return R.ok(service.explode(h.getId(), null, null));
     }

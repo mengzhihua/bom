@@ -64,7 +64,7 @@
 
 - 为外部系统提供已发布 BOM 的展开接口
 - 使用请求头 `X-Api-Key` 进行鉴权
-- API key 由 `BOM_OPEN_API_KEY` 配置，默认值为 `bom-open-key`
+- API key 由 `BOM_OPEN_API_KEY` 配置；未配置时开放 API 拒绝请求
 
 ### 角色权限
 

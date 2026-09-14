@@ -26,9 +26,24 @@ export function clearAuth() {
 export const isAdmin = () => auth.user?.role === 'ADMIN'
 export const isBuyer = () => ['ENGINEER', 'PLANNER'].includes(auth.user?.role)
 export const isSupplier = () => false
-export const canWrite = () => !!auth.user && auth.user.role !== 'VIEWER'
-export const canWritePortal = canWrite
-export const canEditMaster = canWrite
+export const canWrite = (module) => {
+  const role = auth.user?.role
+  if (!role || role === 'VIEWER') {
+    return false
+  }
+  if (role === 'ADMIN') {
+    return true
+  }
+  if (role === 'PLANNER') {
+    return ['mbom', 'master', 'process'].includes(module)
+  }
+  if (role === 'ENGINEER') {
+    return ['parts', 'ebom', 'ecr', 'ecn'].includes(module)
+  }
+  return false
+}
+export const canWritePortal = () => canWrite('parts')
+export const canEditMaster = () => canWrite('master')
 
 export const ROLE_LABEL = { ADMIN: '管理员', ENGINEER: '产品工程师', PLANNER: '制造工程师', VIEWER: '只读' }
 export const fmt = (v) => (v ? String(v).replace('T', ' ').substring(0, 19) : '')

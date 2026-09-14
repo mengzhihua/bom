@@ -90,11 +90,13 @@ public class EcnService {
         return ecn;
     }
 
-    private void applyChange(Long bomId, EcnItem change) {
+    int applyChange(Long bomId, EcnItem change) {
         List<BomItem> currentItems = bomService.itemList(bomId);
+        int matched = 0;
         if ("REPLACE".equals(change.getAction())) {
             for (BomItem item : currentItems) {
                 if (sameItem(item, change)) {
+                    matched++;
                     item.setChildPartId(change.getNewChildPartId());
                     if (change.getNewQty() != null) {
                         item.setQty(change.getNewQty());
@@ -105,6 +107,7 @@ public class EcnService {
         } else if ("REMOVE".equals(change.getAction())) {
             for (BomItem item : currentItems) {
                 if (sameItem(item, change)) {
+                    matched++;
                     bomItems.deleteById(item.getId());
                 }
             }
@@ -117,16 +120,24 @@ public class EcnService {
             item.setUsageCondition(change.getUsageCondition());
             item.setStationCode(change.getStationCode());
             bomService.add(bomId, item);
+            matched = 1;
         } else if ("MODIFY".equals(change.getAction())) {
             for (BomItem item : currentItems) {
                 if (sameItem(item, change)) {
+                    matched++;
                     item.setQty(change.getNewQty());
                     item.setUsageCondition(change.getUsageCondition());
                     item.setStationCode(change.getStationCode());
                     bomItems.updateById(item);
                 }
             }
+        } else if (!"ADD".equals(change.getAction())) {
+            throw new BizException("不支持的 ECN 动作: " + change.getAction());
         }
+        if (!"ADD".equals(change.getAction()) && matched == 0) {
+            throw new BizException("ECN 明细未匹配到 BOM 行");
+        }
+        return matched;
     }
 
     private boolean sameItem(BomItem item, EcnItem change) {

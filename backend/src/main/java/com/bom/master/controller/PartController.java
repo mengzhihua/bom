@@ -5,7 +5,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bom.common.R;
 import com.bom.master.entity.Part;
 import com.bom.master.entity.PartDocument;
+import com.bom.master.entity.PartRevision;
 import com.bom.master.mapper.PartMapper;
+import com.bom.master.mapper.PartRevisionMapper;
 import com.bom.master.service.PartService;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/parts")
@@ -32,6 +38,7 @@ import java.util.List;
 public class PartController {
 
     private final PartMapper parts;
+    private final PartRevisionMapper revisions;
     private final PartService service;
 
     @GetMapping
@@ -53,12 +60,43 @@ public class PartController {
                 .eq(StringUtils.isNotBlank(lifecycle), "lifecycle", lifecycle)
                 .eq(StringUtils.isNotBlank(makeBuy), "make_buy", makeBuy)
                 .orderByDesc("id");
-        return R.ok(parts.selectPage(new Page<>(current, size), query));
+        return R.ok(parts.selectPage(new Page<>(current, Math.min(size, 200)), query));
     }
 
     @GetMapping("/{id}")
     public R<Part> get(@PathVariable Long id) {
-        return R.ok(parts.selectById(id));
+        Part part = parts.selectById(id);
+        if (part == null) {
+            return R.ok(null);
+        }
+        List<Part> samePartNo = parts.selectList(new QueryWrapper<Part>()
+                .eq("part_no", part.getPartNo()));
+        Set<Long> partIds = new HashSet<>();
+        for (Part value : samePartNo) {
+            partIds.add(value.getId());
+        }
+        List<PartRevision> history = revisions.selectList(
+                new QueryWrapper<PartRevision>()
+                        .in(!partIds.isEmpty(), "part_id", partIds)
+                        .orderByDesc("released_at"));
+        Set<String> recorded = new HashSet<>();
+        for (PartRevision revision : history) {
+            recorded.add(revision.getPartId() + ":" + revision.getRevision());
+        }
+        for (Part value : samePartNo) {
+            String key = value.getId() + ":" + value.getRevision();
+            if (!recorded.contains(key)) {
+                PartRevision revision = new PartRevision();
+                revision.setPartId(value.getId());
+                revision.setRevision(value.getRevision());
+                history.add(revision);
+            }
+        }
+        history.sort(Comparator.comparing(
+                PartRevision::getReleasedAt,
+                Comparator.nullsLast(Comparator.reverseOrder())));
+        part.setRevisions(history);
+        return R.ok(part);
     }
 
     @PostMapping

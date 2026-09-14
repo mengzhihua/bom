@@ -42,4 +42,4 @@ bom:
     username: ${BOM_SAP_USERNAME:}
     password: ${BOM_SAP_PASSWORD:}
   open:
-    api-key: ${BOM_OPEN_API_KEY:bom-open-key}
+    api-key: ${BOM_OPEN_API_KEY:}

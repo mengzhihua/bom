@@ -30,23 +30,10 @@ public class UserService implements ApplicationRunner {
     /** 首次启动无任何用户时创建演示账号（口令来自 srm.auth.admin-password / BOM_ADMIN_PASSWORD） */
     @Override
     public void run(ApplicationArguments args) {
-        resetDemoPasswordIfNeeded("admin", initialAdminPassword);
-        resetDemoPasswordIfNeeded("eng", "eng123");
-        resetDemoPasswordIfNeeded("plan", "plan123");
-        resetDemoPasswordIfNeeded("viewer", "viewer123");
         createIfMissing("admin", initialAdminPassword, "系统管理员", User.ADMIN, null);
         createIfMissing("eng", "eng123", "产品工程师", User.ENGINEER, null);
         createIfMissing("plan", "plan123", "制造工程师", User.PLANNER, null);
         createIfMissing("viewer", "viewer123", "只读用户", User.VIEWER, null);
-    }
-    private void resetDemoPasswordIfNeeded(String username, String password) {
-        User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, username));
-        if (user != null && !PasswordHasher.verify(password, user.getPassword())) {
-            User update = new User();
-            update.setId(user.getId());
-            update.setPassword(PasswordHasher.hash(password));
-            userMapper.updateById(update);
-        }
     }
     private void createIfMissing(String username, String password, String realName, String role, String supplierCode) {
         if (userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, username)) == null) {

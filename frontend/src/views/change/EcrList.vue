@@ -3,7 +3,7 @@
     <div class="page-title">
       <h2>ECR 工程变更申请</h2>
       <el-button
-        v-if="canWrite()"
+        v-if="canWrite('ecr')"
         type="primary"
         @click="openCreate"
       >
@@ -34,21 +34,21 @@
         <el-table-column label="操作" width="360">
           <template #default="{ row }">
             <el-button
-              v-if="canWrite() && row.status === 'DRAFT'"
+              v-if="canWrite('ecr') && row.status === 'DRAFT'"
               link
               @click="act(row, 'submit')"
             >
               提交
             </el-button>
             <el-button
-              v-if="canWrite() && row.status === 'SUBMITTED'"
+              v-if="canWrite('ecr') && row.status === 'SUBMITTED'"
               link
               @click="act(row, 'approve')"
             >
               审批
             </el-button>
             <el-button
-              v-if="canWrite() && row.status === 'SUBMITTED'"
+              v-if="canWrite('ecr') && row.status === 'SUBMITTED'"
               link
               type="danger"
               @click="reject(row)"
@@ -56,14 +56,14 @@
               驳回
             </el-button>
             <el-button
-              v-if="canWrite() && row.status === 'APPROVED'"
+              v-if="canWrite('ecr') && row.status === 'APPROVED'"
               link
               @click="act(row, 'to-ecn')"
             >
               生成 ECN
             </el-button>
             <el-button
-              v-if="canWrite() && row.status !== 'CLOSED'"
+              v-if="canWrite('ecr') && row.status !== 'CLOSED'"
               link
               @click="act(row, 'close')"
             >

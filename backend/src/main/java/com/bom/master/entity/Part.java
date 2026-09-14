@@ -1,10 +1,12 @@
 package com.bom.master.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.bom.common.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -33,4 +35,7 @@ public class Part extends BaseEntity {
     private Boolean isPhantom;
     private Boolean safetyPart;
     private Boolean regulatoryPart;
+
+    @TableField(exist = false)
+    private List<PartRevision> revisions;
 }

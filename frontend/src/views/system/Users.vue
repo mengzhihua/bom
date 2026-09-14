@@ -3,7 +3,7 @@
     <div class="page-title">
       <h2>用户管理</h2>
       <el-button
-        v-if="canWrite()"
+        v-if="canWrite('system')"
         type="primary"
         @click="open()"
       >
@@ -20,7 +20,7 @@
         <el-table-column label="操作">
           <template #default="{ row }">
             <el-button
-              v-if="canWrite()"
+              v-if="canWrite('system')"
               link
               @click="open(row)"
             >

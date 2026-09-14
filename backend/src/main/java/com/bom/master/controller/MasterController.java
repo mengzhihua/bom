@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -49,6 +50,15 @@ public class MasterController {
         return R.ok(model);
     }
 
+    @PutMapping("/vehicle-models/{id}")
+    public R<VehicleModel> updateModel(
+            @PathVariable Long id,
+            @RequestBody VehicleModel model) {
+        model.setId(id);
+        models.updateById(model);
+        return R.ok(models.selectById(id));
+    }
+
     @GetMapping("/plants")
     public R<List<Plant>> plants() {
         return R.ok(plants.selectList(null));
@@ -61,6 +71,15 @@ public class MasterController {
         return R.ok(plant);
     }
 
+    @PutMapping("/plants/{id}")
+    public R<Plant> updatePlant(
+            @PathVariable Long id,
+            @RequestBody Plant plant) {
+        plant.setId(id);
+        plants.updateById(plant);
+        return R.ok(plants.selectById(id));
+    }
+
     @GetMapping("/suppliers")
     public R<List<Supplier>> suppliers() {
         return R.ok(suppliers.selectList(null));
@@ -71,6 +90,15 @@ public class MasterController {
         supplier.setId(null);
         suppliers.insert(supplier);
         return R.ok(supplier);
+    }
+
+    @PutMapping("/suppliers/{id}")
+    public R<Supplier> updateSupplier(
+            @PathVariable Long id,
+            @RequestBody Supplier supplier) {
+        supplier.setId(id);
+        suppliers.updateById(supplier);
+        return R.ok(suppliers.selectById(id));
     }
 
     @GetMapping("/features")
@@ -91,6 +119,15 @@ public class MasterController {
         return R.ok(feature);
     }
 
+    @PutMapping("/features/{id}")
+    public R<Feature> updateFeature(
+            @PathVariable Long id,
+            @RequestBody Feature feature) {
+        feature.setId(id);
+        features.updateById(feature);
+        return R.ok(features.selectById(id));
+    }
+
     @PostMapping("/features/{id}/options")
     public R<FeatureOption> option(
             @PathVariable Long id,
@@ -109,5 +146,12 @@ public class MasterController {
     @PostMapping("/workstations")
     public R<WorkStation> workstation(@RequestBody WorkStation workstation) {
         return R.ok(stationService.create(workstation));
+    }
+
+    @PutMapping("/workstations/{id}")
+    public R<WorkStation> updateWorkstation(
+            @PathVariable Long id,
+            @RequestBody WorkStation workstation) {
+        return R.ok(stationService.update(id, workstation));
     }
 }

@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <div class="page-title"><h2>{{ title }}</h2><el-button v-if="canWrite()" type="primary" @click="open()"><el-icon><Plus /></el-icon>新增</el-button></div>
+    <div class="page-title"><h2>{{ title }}</h2><el-button v-if="canWrite('master')" type="primary" @click="open()"><el-icon><Plus /></el-icon>新增</el-button></div>
     <el-card shadow="never">
       <el-table :data="rows" stripe v-loading="loading">
         <el-table-column v-for="col in columns" :key="col.prop" :prop="col.prop" :label="col.label" min-width="130" />
@@ -19,10 +19,25 @@
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { canWrite } from '../../auth'
-const props = defineProps({ title: String, columns: Array, load: Function, create: Function })
+const props = defineProps({
+  title: String,
+  columns: Array,
+  load: Function,
+  create: Function,
+  update: Function
+})
 const rows = ref([]); const loading = ref(false); const visible = ref(false); const form = reactive({})
 async function refresh() { loading.value = true; try { rows.value = await props.load() } finally { loading.value = false } }
 function open(row) { Object.keys(form).forEach((k) => delete form[k]); Object.assign(form, row || {}); visible.value = true }
-async function save() { await props.create({ ...form }); ElMessage.success('保存成功'); visible.value = false; refresh() }
+async function save() {
+  if (form.id && props.update) {
+    await props.update(form.id, { ...form })
+  } else {
+    await props.create({ ...form })
+  }
+  ElMessage.success('保存成功')
+  visible.value = false
+  refresh()
+}
 onMounted(refresh)
 </script>

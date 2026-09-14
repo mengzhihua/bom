@@ -3,7 +3,7 @@
     <div class="page-title">
       <h2>BOM 管理</h2>
       <el-button
-        v-if="canWrite()"
+        v-if="canWriteBom(form)"
         type="primary"
         @click="openCreate"
       >
@@ -73,35 +73,35 @@
               打开
             </el-button>
             <el-button
-              v-if="canWrite() && row.status === 'DRAFT'"
+              v-if="canWriteBom(row) && row.status === 'DRAFT'"
               link
               @click="act(row, 'release')"
             >
               发布
             </el-button>
             <el-button
-              v-if="canWrite() && row.status === 'RELEASED'"
+              v-if="canWriteBom(row) && row.status === 'RELEASED'"
               link
               @click="act(row, 'freeze')"
             >
               冻结
             </el-button>
             <el-button
-              v-if="canWrite() && row.status !== 'OBSOLETE'"
+              v-if="canWriteBom(row) && row.status !== 'OBSOLETE'"
               link
               @click="act(row, 'obsolete')"
             >
               作废
             </el-button>
             <el-button
-              v-if="canWrite() && row.status !== 'DRAFT'"
+              v-if="canWriteBom(row) && row.status !== 'DRAFT'"
               link
               @click="act(row, 'new-version')"
             >
               新版本
             </el-button>
             <el-button
-              v-if="canWrite() && row.bomType === 'EBOM'"
+              v-if="canWriteBom(row) && row.bomType === 'EBOM'"
               link
               @click="derive(row)"
             >
@@ -111,7 +111,7 @@
               对比
             </el-button>
             <el-button
-              v-if="canWrite() && row.status === 'RELEASED'"
+              v-if="canWriteBom(row) && row.status === 'RELEASED'"
               link
               @click="act(row, 'sync-sap')"
             >
@@ -179,6 +179,10 @@ const form = reactive({
   plantId: null,
   description: ''
 })
+
+function canWriteBom(value) {
+  return canWrite(value?.bomType === 'MBOM' ? 'mbom' : 'ebom')
+}
 
 const filteredRows = computed(() => rows.value.filter((row) => {
   const typeMatched = !filters.bomType || row.bomType === filters.bomType

@@ -1,7 +1,3 @@
-INSERT INTO bom_user(username,password,real_name,role,status,created_at,updated_at) SELECT 'admin','{noop}admin123','系统管理员','ADMIN',1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP WHERE NOT EXISTS(SELECT 1 FROM bom_user WHERE username='admin');
-INSERT INTO bom_user(username,password,real_name,role,status,created_at,updated_at) SELECT 'eng','{noop}eng123','产品工程师','ENGINEER',1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP WHERE NOT EXISTS(SELECT 1 FROM bom_user WHERE username='eng');
-INSERT INTO bom_user(username,password,real_name,role,status,created_at,updated_at) SELECT 'plan','{noop}plan123','制造工程师','PLANNER',1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP WHERE NOT EXISTS(SELECT 1 FROM bom_user WHERE username='plan');
-INSERT INTO bom_user(username,password,real_name,role,status,created_at,updated_at) SELECT 'viewer','{noop}viewer123','只读用户','VIEWER',1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP WHERE NOT EXISTS(SELECT 1 FROM bom_user WHERE username='viewer');
 INSERT INTO bom_vehicle_model(model_code,model_name,platform,program,sop_date,status) SELECT 'M01','星耀 SUV','X平台','SOP','2025-06-01','ACTIVE' WHERE NOT EXISTS(SELECT 1 FROM bom_vehicle_model WHERE model_code='M01');
 INSERT INTO bom_vehicle_model(model_code,model_name,platform,program,sop_date,status) SELECT 'M02','星耀轿车','Y平台','DESIGN','2026-01-01','ACTIVE' WHERE NOT EXISTS(SELECT 1 FROM bom_vehicle_model WHERE model_code='M02');
 INSERT INTO bom_plant(plant_code,plant_name,sap_plant,address) SELECT 'P001','上海工厂','1000','上海市青浦区' WHERE NOT EXISTS(SELECT 1 FROM bom_plant WHERE plant_code='P001');
@@ -26,7 +22,7 @@ SELECT 'P-GEAR-AT','A','自动变速箱','SUB_ASSEMBLY','POWERTRAIN','EA','BUY',
 WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-GEAR-AT' AND revision='A');
 INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,unit_cost,weight_kg,is_phantom) SELECT 'P-DOOR-FL','A','左前车门','PART','BODY','EA','BUY','RELEASED',2500,32,FALSE WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-DOOR-FL' AND revision='A');
 INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,unit_cost,weight_kg,is_phantom) SELECT 'P-BOLT','A','六角螺栓','STANDARD','CHASSIS','EA','BUY','RELEASED',1.2,.05,FALSE WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-BOLT' AND revision='A');
-INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,unit_cost,weight_kg,is_phantom) SELECT 'P-WIRE','A','整车线束','PART','ELECTRICAL','EA','BUY','DRAFT',1200,12,FALSE WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-WIRE' AND revision='A');
+INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,unit_cost,weight_kg,is_phantom) SELECT 'P-WIRE','A','整车线束','PART','ELECTRICAL','EA','BUY','RELEASED',1200,12,FALSE WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-WIRE' AND revision='A');
 INSERT INTO bom_header(bom_no,bom_type,root_part_id,vehicle_model_id,version,status,description)
 SELECT 'BOM-M01-EBOM','EBOM',(SELECT id FROM bom_part WHERE part_no='V-M01'),
        (SELECT id FROM bom_vehicle_model WHERE model_code='M01'),1,'RELEASED','M01示范工程BOM'
@@ -432,6 +428,14 @@ WHERE h.bom_no='BOM-M01-EBOM-V2' AND p.part_no='P-BODY'
         AND parent_part_id=h.root_part_id
         AND child_part_id=p.id
   );
+
+UPDATE bom_part
+SET lifecycle='RELEASED'
+WHERE id IN (
+    SELECT child_part_id
+    FROM bom_item
+    WHERE child_part_id IS NOT NULL
+);
 
 INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type)
 SELECT h.id,h.root_part_id,p.id,20,1,'EA','NORMAL'

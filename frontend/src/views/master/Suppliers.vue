@@ -16,5 +16,6 @@ const columns = [
     :columns="columns"
     :load="master.suppliers"
     :create="master.supplier"
+    :update="master.updateSupplier"
   />
 </template>
