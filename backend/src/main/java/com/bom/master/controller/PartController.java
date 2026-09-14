@@ -7,6 +7,7 @@ import com.bom.master.entity.Part;
 import com.bom.master.entity.PartDocument;
 import com.bom.master.mapper.PartMapper;
 import com.bom.master.service.PartService;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,14 +44,14 @@ public class PartController {
             @RequestParam(required = false) String lifecycle,
             @RequestParam(required = false) String makeBuy) {
         QueryWrapper<Part> query = new QueryWrapper<>();
-        query.and(keyword != null && !keyword.isEmpty(),
+        query.and(StringUtils.isNotBlank(keyword),
                 wrapper -> wrapper.like("part_no", keyword)
                         .or()
                         .like("part_name", keyword))
-                .eq(partType != null, "part_type", partType)
-                .eq(category != null, "category", category)
-                .eq(lifecycle != null, "lifecycle", lifecycle)
-                .eq(makeBuy != null, "make_buy", makeBuy)
+                .eq(StringUtils.isNotBlank(partType), "part_type", partType)
+                .eq(StringUtils.isNotBlank(category), "category", category)
+                .eq(StringUtils.isNotBlank(lifecycle), "lifecycle", lifecycle)
+                .eq(StringUtils.isNotBlank(makeBuy), "make_buy", makeBuy)
                 .orderByDesc("id");
         return R.ok(parts.selectPage(new Page<>(current, size), query));
     }

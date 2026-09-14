@@ -268,6 +268,80 @@ INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,
 INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle) SELECT 'P-CARPET','A','地毯','RAW','INTERIOR','EA','BUY','RELEASED' WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-CARPET' AND revision='A');
 INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle) SELECT 'P-PAINT','A','车身涂料','RAW','EXTERIOR','KG','BUY','RELEASED' WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-PAINT' AND revision='A');
 INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle) SELECT 'P-FUEL-TANK','A','燃油箱','PART','POWERTRAIN','EA','BUY','RELEASED' WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-FUEL-TANK' AND revision='A');
+UPDATE bom_part
+SET material='汽车级材料',
+    weight_kg=1,
+    unit_cost=10,
+    lead_time_days=15,
+    drawing_no=CONCAT('DWG-',part_no)
+WHERE part_no LIKE 'P-%'
+   OR part_no='V-M01';
+UPDATE bom_part
+SET supplier_id=(SELECT id FROM bom_supplier WHERE supplier_code='SUP01')
+WHERE make_buy='BUY';
+UPDATE bom_part
+SET material='车身钢板',
+    weight_kg=400,
+    unit_cost=30000,
+    lead_time_days=20,
+    drawing_no='DWG-P-BODY'
+WHERE part_no='P-BODY';
+UPDATE bom_part
+SET material='铝合金及钢材',
+    weight_kg=450,
+    unit_cost=55000,
+    lead_time_days=25,
+    drawing_no='DWG-P-POWER'
+WHERE part_no='P-POWER';
+UPDATE bom_part
+SET material='铝合金',
+    weight_kg=120,
+    unit_cost=15000,
+    lead_time_days=30,
+    drawing_no='DWG-P-ENGINE15'
+WHERE part_no='P-ENGINE15';
+UPDATE bom_part
+SET material='铝合金',
+    weight_kg=165,
+    unit_cost=22000,
+    lead_time_days=35,
+    drawing_no='DWG-P-ENGINE20'
+WHERE part_no='P-ENGINE20';
+UPDATE bom_part
+SET material='铝合金壳体',
+    weight_kg=82,
+    unit_cost=9000,
+    lead_time_days=30,
+    drawing_no='DWG-P-GEAR-MT'
+WHERE part_no='P-GEAR-MT';
+UPDATE bom_part
+SET material='铝合金壳体',
+    weight_kg=88,
+    unit_cost=13000,
+    lead_time_days=30,
+    drawing_no='DWG-P-GEAR-AT'
+WHERE part_no='P-GEAR-AT';
+UPDATE bom_part
+SET material='镀锌钢',
+    weight_kg=.02,
+    unit_cost=.5,
+    lead_time_days=7,
+    drawing_no='STD-P-BOLT'
+WHERE part_no='P-BOLT';
+UPDATE bom_part
+SET material='钢板及玻璃',
+    weight_kg=32,
+    unit_cost=2500,
+    lead_time_days=20,
+    drawing_no=CONCAT('DWG-',part_no)
+WHERE part_no LIKE 'P-DOOR-%';
+UPDATE bom_part
+SET material='钢材',
+    weight_kg=1500,
+    unit_cost=200000,
+    lead_time_days=45,
+    drawing_no='DWG-V-M01'
+WHERE part_no='V-M01';
 INSERT INTO bom_feature(vehicle_model_id,feature,name) SELECT (SELECT id FROM bom_vehicle_model WHERE model_code='M01'),'ENGINE','发动机' WHERE NOT EXISTS(SELECT 1 FROM bom_feature WHERE feature='ENGINE');
 INSERT INTO bom_feature(vehicle_model_id,feature,name) SELECT (SELECT id FROM bom_vehicle_model WHERE model_code='M01'),'TRANS','变速箱' WHERE NOT EXISTS(SELECT 1 FROM bom_feature WHERE feature='TRANS');
 INSERT INTO bom_feature_option(feature_id,option_code,option_name) SELECT (SELECT id FROM bom_feature WHERE feature='ENGINE'),'1.5T','1.5T' WHERE NOT EXISTS(SELECT 1 FROM bom_feature_option WHERE option_code='1.5T');
@@ -286,6 +360,39 @@ SELECT 'ECN-DEMO-001',e.id,'自动变速箱替换',
 FROM bom_ecr e
 WHERE e.ecr_no='ECR-DEMO-001'
   AND NOT EXISTS(SELECT 1 FROM bom_ecn WHERE ecn_no='ECN-DEMO-001');
+INSERT INTO bom_ecn_item(
+    ecn_id,
+    action,
+    parent_part_id,
+    old_child_part_id,
+    new_child_part_id,
+    old_qty,
+    new_qty,
+    find_no,
+    usage_condition,
+    remark
+)
+SELECT e.id,
+       'REPLACE',
+       (SELECT id FROM bom_part WHERE part_no='P-POWER'),
+       (SELECT id FROM bom_part WHERE part_no='P-GEAR-MT'),
+       (SELECT id FROM bom_part WHERE part_no='P-GEAR-AT'),
+       1,
+       1,
+       50,
+       'TRANS=AT',
+       '演示变速箱替换'
+FROM bom_ecn e
+WHERE e.ecn_no='ECN-DEMO-001'
+  AND NOT EXISTS(
+      SELECT 1
+      FROM bom_ecn_item
+      WHERE ecn_id=e.id
+        AND action='REPLACE'
+        AND parent_part_id=(SELECT id FROM bom_part WHERE part_no='P-POWER')
+        AND old_child_part_id=(SELECT id FROM bom_part WHERE part_no='P-GEAR-MT')
+        AND new_child_part_id=(SELECT id FROM bom_part WHERE part_no='P-GEAR-AT')
+  );
 INSERT INTO bom_header(bom_no,bom_type,root_part_id,vehicle_model_id,plant_id,version,status,description,source_bom_id)
 SELECT 'BOM-M01-MBOM','MBOM',(SELECT id FROM bom_part WHERE part_no='V-M01'),
        (SELECT id FROM bom_vehicle_model WHERE model_code='M01'),

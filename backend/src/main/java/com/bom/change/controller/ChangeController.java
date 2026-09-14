@@ -3,6 +3,7 @@ package com.bom.change.controller;
 import com.bom.change.entity.Ecr;
 import com.bom.change.entity.Ecn;
 import com.bom.change.entity.EcnItem;
+import com.bom.change.mapper.EcrMapper;
 import com.bom.change.service.EcnService;
 import com.bom.change.service.EcrService;
 import com.bom.bom.entity.BomHeader;
@@ -31,6 +32,7 @@ public class ChangeController {
 
     private final EcrService ecrService;
     private final EcnService ecnService;
+    private final EcrMapper ecrs;
     private final BomHeaderMapper bomHeaders;
     private final PartMapper parts;
     private final VehicleModelMapper models;
@@ -144,6 +146,10 @@ public class ChangeController {
         BomHeader implemented = bomHeaders.selectById(value.getImplementedBomId());
         if (implemented != null) {
             value.setImplementedBomNo(implemented.getBomNo());
+        }
+        Ecr ecr = ecrs.selectById(value.getEcrId());
+        if (ecr != null) {
+            value.setEcrNo(ecr.getEcrNo());
         }
     }
 

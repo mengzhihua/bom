@@ -14,8 +14,17 @@
         <el-descriptions-item label="状态">
           {{ ecn.status }}
         </el-descriptions-item>
+        <el-descriptions-item label="关联 ECR">
+          {{ ecn.ecrNo || ecn.ecrId || '-' }}
+        </el-descriptions-item>
         <el-descriptions-item label="目标 BOM">
           {{ ecn.bomNo || ecn.bomId }}
+        </el-descriptions-item>
+        <el-descriptions-item label="变更类型">
+          {{ ecn.changeType || '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="实施后 BOM">
+          {{ ecn.implementedBomNo || ecn.implementedBomId || '-' }}
         </el-descriptions-item>
         <el-descriptions-item label="生效方式">
           {{ ecn.effectiveType }}
@@ -48,6 +57,12 @@
           实施
         </el-button>
         <el-button
+          v-if="canWrite() && ecn.status === 'DRAFT'"
+          @click="openEdit"
+        >
+          编辑
+        </el-button>
+        <el-button
           v-if="ecn.implementedBomId"
           type="success"
           @click="router.push(`/boms/${ecn.implementedBomId}`)"
@@ -56,6 +71,46 @@
         </el-button>
       </div>
     </el-card>
+
+    <el-dialog v-model="editVisible" title="编辑 ECN" width="560px">
+      <el-form :model="editForm" label-width="110px">
+        <el-form-item label="目标 BOM">
+          <el-select v-model="editForm.bomId" filterable>
+            <el-option
+              v-for="bom in releasedBoms"
+              :key="bom.id"
+              :label="`${bom.bomNo} v${bom.version}`"
+              :value="bom.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="生效方式">
+          <el-select v-model="editForm.effectiveType">
+            <el-option label="按日期" value="DATE" />
+            <el-option label="按 VIN" value="VIN" />
+            <el-option label="立即生效" value="IMMEDIATE" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="生效日期">
+          <el-date-picker
+            v-model="editForm.effectiveDate"
+            type="date"
+            value-format="YYYY-MM-DD"
+          />
+        </el-form-item>
+        <el-form-item label="生效 VIN">
+          <el-input v-model="editForm.effectiveVin" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="editVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" @click="saveEdit">
+          保存
+        </el-button>
+      </template>
+    </el-dialog>
 
     <el-card shadow="never" class="mt">
       <template #header>
@@ -128,7 +183,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
-import { changes } from '../../api'
+import { boms, changes } from '../../api'
 import { canWrite } from '../../auth'
 
 const route = useRoute()
@@ -136,6 +191,14 @@ const router = useRouter()
 const ecn = ref({})
 const items = ref([])
 const itemVisible = ref(false)
+const editVisible = ref(false)
+const releasedBoms = ref([])
+const editForm = reactive({
+  bomId: null,
+  effectiveType: 'IMMEDIATE',
+  effectiveDate: null,
+  effectiveVin: ''
+})
 const itemForm = reactive({
   action: 'REPLACE',
   parentPartId: null,
@@ -151,6 +214,11 @@ const itemForm = reactive({
 async function load() {
   ecn.value = await changes.ecn(route.params.id)
   items.value = await changes.ecnItems(route.params.id)
+}
+
+async function loadBoms() {
+  const values = await boms.list()
+  releasedBoms.value = values.filter((value) => value.status === 'RELEASED')
 }
 
 async function act(action) {
@@ -172,6 +240,24 @@ function openItem() {
     stationCode: ''
   })
   itemVisible.value = true
+}
+
+async function openEdit() {
+  await loadBoms()
+  Object.assign(editForm, {
+    bomId: ecn.value.bomId,
+    effectiveType: ecn.value.effectiveType || 'IMMEDIATE',
+    effectiveDate: ecn.value.effectiveDate || null,
+    effectiveVin: ecn.value.effectiveVin || ''
+  })
+  editVisible.value = true
+}
+
+async function saveEdit() {
+  await changes.updateEcn(route.params.id, editForm)
+  editVisible.value = false
+  ElMessage.success('ECN 已更新')
+  await load()
 }
 
 async function saveItem() {

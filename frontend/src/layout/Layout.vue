@@ -161,7 +161,7 @@ const pwdRules = {
 
 const crumbs = computed(() => {
   const menu = menus.find((item) => item.path === route.path)
-  return menu ? [menu.name] : []
+  return [route.meta.menu || menu?.name || route.name].filter(Boolean)
 })
 
 async function onCommand(command) {

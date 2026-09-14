@@ -86,6 +86,33 @@ export const menus = [
 export const visibleMenus = () => menus
 export const homePath = () => '/dashboard'
 
+const detailRoutes = [
+  {
+    path: 'parts/:id',
+    name: '零件详情',
+    component: () => import('../views/parts/PartDetail.vue'),
+    meta: { menu: '零件管理' }
+  },
+  {
+    path: 'boms/compare',
+    name: 'BOM 对比',
+    component: () => import('../views/bom/BomCompare.vue'),
+    meta: { menu: 'BOM 管理' }
+  },
+  {
+    path: 'boms/:id',
+    name: 'BOM 详情',
+    component: () => import('../views/bom/BomDetail.vue'),
+    meta: { menu: 'BOM 管理' }
+  },
+  {
+    path: 'ecns/:id',
+    name: 'ECN 详情',
+    component: () => import('../views/change/EcnDetail.vue'),
+    meta: { menu: 'ECN 工程通知' }
+  }
+]
+
 const routes = [
   {
     path: '/login',
@@ -93,34 +120,17 @@ const routes = [
     component: () => import('../views/Login.vue')
   },
   {
-    path: '/parts/:id',
-    name: '零件详情',
-    component: () => import('../views/parts/PartDetail.vue')
-  },
-  {
-    path: '/boms/compare',
-    name: 'BOM 对比',
-    component: () => import('../views/bom/BomCompare.vue')
-  },
-  {
-    path: '/boms/:id',
-    name: 'BOM 详情',
-    component: () => import('../views/bom/BomDetail.vue')
-  },
-  {
-    path: '/ecns/:id',
-    name: 'ECN 详情',
-    component: () => import('../views/change/EcnDetail.vue')
-  },
-  {
     path: '/',
     component: Layout,
     redirect: homePath,
-    children: menus.map((menu) => ({
-      path: menu.path.substring(1),
-      name: menu.name,
-      component: menu.component
-    }))
+    children: [
+      ...menus.map((menu) => ({
+        path: menu.path.substring(1),
+        name: menu.name,
+        component: menu.component
+      })),
+      ...detailRoutes
+    ]
   }
 ]
 

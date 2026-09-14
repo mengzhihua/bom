@@ -39,7 +39,8 @@
           {{ header.vehicleModelCode }} {{ header.vehicleModelName }}
         </el-descriptions-item>
         <el-descriptions-item label="工厂">
-          {{ header.plantCode }} {{ header.plantName }}
+          {{ header.plantCode || '-' }}
+          {{ header.plantName || '' }}
         </el-descriptions-item>
         <el-descriptions-item label="生效日期">
           {{ header.effectiveFrom }} ~ {{ header.effectiveTo }}
@@ -149,8 +150,14 @@
 
         <el-tab-pane label="成本/重量" name="rollup">
           <div class="metrics">
-            <el-statistic title="总成本" :value="roll.totalCost || 0" />
-            <el-statistic title="总重量" :value="roll.totalWeight || 0" />
+            <el-statistic
+              title="总成本"
+              :value="roll.totalCost || 0"
+            />
+            <el-statistic
+              title="总重量"
+              :value="roll.totalWeight || 0"
+            />
           </div>
           <el-table :data="roll.details || []" border>
             <el-table-column prop="partNo" label="零件号" />

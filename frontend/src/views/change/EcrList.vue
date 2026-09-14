@@ -117,9 +117,11 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useRouter } from 'vue-router'
 import { changes } from '../../api'
 import { canWrite } from '../../auth'
 
+const router = useRouter()
 const rows = ref([])
 const status = ref('')
 const visible = ref(false)
@@ -160,8 +162,12 @@ async function create() {
 }
 
 async function act(row, action) {
-  await changes.ecrAction(row.id, action)
+  const result = await changes.ecrAction(row.id, action)
   ElMessage.success('操作成功')
+  if (action === 'to-ecn' && result?.id) {
+    await router.push(`/ecns/${result.id}`)
+    return
+  }
   await load()
 }
 

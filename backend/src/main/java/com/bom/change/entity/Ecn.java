@@ -26,5 +26,8 @@ public class Ecn extends BaseEntity {
     private String bomNo;
 
     @TableField(exist = false)
+    private String ecrNo;
+
+    @TableField(exist = false)
     private String implementedBomNo;
 }

@@ -93,7 +93,7 @@ export const changes = {
   updateEcn: (id, data) => http.put(`/ecns/${id}`, data),
   ecnItems: (id) => http.get(`/ecns/${id}/items`),
   addEcnItem: (id, data) => http.post(`/ecns/${id}/items`, data),
-  ecnAction: (id, action) => http.post(`/ecns/${id}/${action}`)
+  ecnAction: (id, action, data) => http.post(`/ecns/${id}/${action}`, data)
 }
 
 export const integration = {
