@@ -15,34 +15,93 @@ export const authApi = {
   logout: () => http.post('/auth/logout')
 }
 
-export const dashboard = { summary: () => http.get('/dashboard/summary') }
+export const dashboard = {
+  summary: () => http.get('/dashboard/summary')
+}
+
 export const master = {
-  models: () => http.get('/master/vehicle-models'), model: (d) => http.post('/master/vehicle-models', d),
-  plants: () => http.get('/master/plants'), plant: (d) => http.post('/master/plants', d),
-  suppliers: () => http.get('/master/suppliers'), supplier: (d) => http.post('/master/suppliers', d),
-  features: () => http.get('/master/features'), feature: (d) => http.post('/master/features', d),
-  options: (id) => http.get(`/master/features/${id}/options`), option: (id, d) => http.post(`/master/features/${id}/options`, d),
-  workstations: () => http.get('/master/workstations'), workstation: (d) => http.post('/master/workstations', d)
+  models: () => http.get('/master/vehicle-models'),
+  model: (data) => http.post('/master/vehicle-models', data),
+  plants: () => http.get('/master/plants'),
+  plant: (data) => http.post('/master/plants', data),
+  suppliers: () => http.get('/master/suppliers'),
+  supplier: (data) => http.post('/master/suppliers', data),
+  features: () => http.get('/master/features'),
+  feature: (data) => http.post('/master/features', data),
+  options: (id) => http.get(`/master/features/${id}/options`),
+  option: (id, data) => http.post(`/master/features/${id}/options`, data),
+  deleteOption: (id) => http.delete(`/master/features/options/${id}`),
+  workstations: (params) => http.get('/master/workstations', { params }),
+  workstation: (data) => http.post('/master/workstations', data)
 }
+
 export const parts = {
-  page: (p) => http.get('/parts', { params: p }), get: (id) => http.get(`/parts/${id}`),
-  create: (d) => http.post('/parts', d), update: (id, d) => http.put(`/parts/${id}`, d),
-  remove: (id) => http.delete(`/parts/${id}`), action: (id, n) => http.post(`/parts/${id}/${n}`),
-  documents: (id) => http.get(`/parts/${id}/documents`), addDocument: (id, d) => http.post(`/parts/${id}/documents`, d),
-  deleteDocument: (id) => http.delete(`/parts/documents/${id}`), whereUsed: (id, recursive = true) => http.get(`/parts/${id}/where-used`, { params: { recursive } })
+  page: (params) => http.get('/parts', { params }),
+  get: (id) => http.get(`/parts/${id}`),
+  create: (data) => http.post('/parts', data),
+  update: (id, data) => http.put(`/parts/${id}`, data),
+  remove: (id) => http.delete(`/parts/${id}`),
+  action: (id, name) => http.post(`/parts/${id}/${name}`),
+  documents: (id) => http.get(`/parts/${id}/documents`),
+  addDocument: (id, data) => http.post(`/parts/${id}/documents`, data),
+  deleteDocument: (id) => http.delete(`/parts/documents/${id}`),
+  whereUsed: (id, recursive = true) => http.get(
+    `/parts/${id}/where-used`,
+    { params: { recursive } }
+  ),
+  importCsv: (file) => {
+    const data = new FormData()
+    data.append('file', file)
+    return http.post('/parts/import', data)
+  },
+  exportCsv: () => http.get('/parts/export', { responseType: 'blob' })
 }
+
 export const boms = {
-  list: () => http.get('/boms'), get: (id) => http.get(`/boms/${id}`), create: (d) => http.post('/boms', d),
-  items: (id) => http.get(`/boms/${id}/items`), addItem: (id, d) => http.post(`/boms/${id}/items`, d),
-  updateItem: (id, itemId, d) => http.put(`/boms/${id}/items/${itemId}`, d), deleteItem: (id, itemId) => http.delete(`/boms/${id}/items/${itemId}`),
-  tree: (id) => http.get(`/boms/${id}/tree`), explode: (id, level) => http.get(`/boms/${id}/explode`, { params: { level } }),
-  summarized: (id) => http.get(`/boms/${id}/summarized`), rollup: (id) => http.get(`/boms/${id}/rollup`),
-  action: (id, name, d) => http.post(`/boms/${id}/${name}`, d), compare: (l, r) => http.get('/boms/compare', { params: { leftId: l, rightId: r } })
+  list: () => http.get('/boms'),
+  get: (id) => http.get(`/boms/${id}`),
+  create: (data) => http.post('/boms', data),
+  items: (id) => http.get(`/boms/${id}/items`),
+  addItem: (id, data) => http.post(`/boms/${id}/items`, data),
+  updateItem: (id, itemId, data) => http.put(`/boms/${id}/items/${itemId}`, data),
+  deleteItem: (id, itemId) => http.delete(`/boms/${id}/items/${itemId}`),
+  tree: (id) => http.get(`/boms/${id}/tree`),
+  explode: (id, level) => http.get(`/boms/${id}/explode`, { params: { level } }),
+  summarized: (id) => http.get(`/boms/${id}/summarized`),
+  rollup: (id) => http.get(`/boms/${id}/rollup`),
+  byStation: (id) => http.get(`/boms/${id}/by-station`),
+  configure: (id, data) => http.post(`/boms/${id}/configure`, data),
+  action: (id, name, data) => http.post(`/boms/${id}/${name}`, data),
+  compare: (leftId, rightId) => http.get(
+    '/boms/compare',
+    { params: { leftId, rightId } }
+  ),
+  importCsv: (id, file) => {
+    const data = new FormData()
+    data.append('file', file)
+    return http.post(`/boms/${id}/import`, data)
+  },
+  exportCsv: (id) => http.get(`/boms/${id}/export`, { responseType: 'blob' })
 }
+
 export const changes = {
-  ecrs: () => http.get('/ecrs'), createEcr: (d) => http.post('/ecrs', d), ecrAction: (id, a) => http.post(`/ecrs/${id}/${a}`),
-  ecns: () => http.get('/ecns'), ecn: (id) => http.get(`/ecns/${id}`), updateEcn: (id, d) => http.put(`/ecns/${id}`, d),
-  ecnItems: (id) => http.get(`/ecns/${id}/items`), addEcnItem: (id, d) => http.post(`/ecns/${id}/items`, d), ecnAction: (id, a) => http.post(`/ecns/${id}/${a}`)
+  ecrs: () => http.get('/ecrs'),
+  createEcr: (data) => http.post('/ecrs', data),
+  ecrAction: (id, action, data) => http.post(`/ecrs/${id}/${action}`, data),
+  ecns: () => http.get('/ecns'),
+  ecn: (id) => http.get(`/ecns/${id}`),
+  updateEcn: (id, data) => http.put(`/ecns/${id}`, data),
+  ecnItems: (id) => http.get(`/ecns/${id}/items`),
+  addEcnItem: (id, data) => http.post(`/ecns/${id}/items`, data),
+  ecnAction: (id, action) => http.post(`/ecns/${id}/${action}`)
 }
-export const integration = { logs: (p) => http.get('/integration/logs', { params: p }), retry: (id) => http.post(`/integration/logs/${id}/retry`) }
-export const system = { users: crud('/system/user'), oplog: (p) => http.get('/system/oplog/page', { params: p }) }
+
+export const integration = {
+  logs: (params) => http.get('/integration/logs', { params }),
+  retry: (id) => http.post(`/integration/logs/${id}/retry`)
+}
+
+export const system = {
+  users: crud('/system/user'),
+  oplog: (params) => http.get('/system/oplog/page', { params })
+}

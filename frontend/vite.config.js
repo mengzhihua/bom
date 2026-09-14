@@ -9,10 +9,7 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: 'http://localhost:8082',
-        changeOrigin: true,
-        configure: (proxy) => {
-          proxy.on('proxyReq', (request) => request.removeHeader('origin'))
-        }
+        changeOrigin: true
       }
     }
   }
