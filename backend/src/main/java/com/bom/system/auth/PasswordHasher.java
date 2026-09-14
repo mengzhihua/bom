@@ -12,10 +12,8 @@ public final class PasswordHasher {
     private static final int ITERATIONS = 65536;
     private static final int KEY_BITS = 256;
     private static final SecureRandom RANDOM = new SecureRandom();
-
     private PasswordHasher() {
     }
-
     public static String hash(String plain) {
         byte[] salt = new byte[16];
         RANDOM.nextBytes(salt);
@@ -23,7 +21,6 @@ public final class PasswordHasher {
         Base64.Encoder enc = Base64.getEncoder();
         return "pbkdf2$" + ITERATIONS + "$" + enc.encodeToString(salt) + "$" + enc.encodeToString(hash);
     }
-
     public static boolean verify(String plain, String stored) {
         if (plain == null || stored == null) {
             return false;
@@ -37,7 +34,6 @@ public final class PasswordHasher {
         byte[] actual = derive(plain, dec.decode(parts[2]), Integer.parseInt(parts[1]));
         return MessageDigest.isEqual(expected, actual);
     }
-
     private static byte[] derive(String plain, byte[] salt, int iterations) {
         try {
             PBEKeySpec spec = new PBEKeySpec(plain.toCharArray(), salt, iterations, KEY_BITS);

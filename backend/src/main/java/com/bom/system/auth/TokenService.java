@@ -3,7 +3,6 @@ package com.bom.system.auth;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
@@ -14,17 +13,17 @@ import java.time.Duration;
 import java.util.Base64;
 
 /**
- * 无状态 HMAC 访问令牌：{@code base64url(userId:username:expiresAtMillis).base64url(hmacSha256)}。
- * 密钥来自 srm.auth.secret（环境变量 BOM_AUTH_SECRET）；未配置时每次启动随机生成，重启后旧令牌全部失效。
- */
+* 无状态 HMAC 访问令牌：{@code base64url(userId:username:expiresAtMillis).base64url(hmacSha256)}。
+* 密钥来自 srm.auth.secret（环境变量 BOM_AUTH_SECRET）；未配置时每次启动随机生成，重启后旧令牌全部失效。
+*/
 @Slf4j
 @Component
 public class TokenService {
     private final byte[] key;
     private final long ttlMillis;
-
-    public TokenService(@Value("${bom.auth.secret:}") String secret,
-                        @Value("${bom.auth.token-ttl:12h}") Duration ttl) {
+    public TokenService(
+    @Value("${bom.auth.secret:}") String secret,
+    @Value("${bom.auth.token-ttl:12h}") Duration ttl) {
         if (secret == null || secret.trim().isEmpty()) {
             byte[] random = new byte[32];
             new SecureRandom().nextBytes(random);
@@ -35,17 +34,14 @@ public class TokenService {
         }
         this.ttlMillis = ttl.toMillis();
     }
-
     public String issue(Long userId, String username) {
         return issue(userId, username, System.currentTimeMillis() + ttlMillis);
     }
-
     String issue(Long userId, String username, long expiresAt) {
         String payload = userId + ":" + username + ":" + expiresAt;
         String body = b64(payload.getBytes(StandardCharsets.UTF_8));
         return body + "." + b64(sign(body));
     }
-
     /** @return 解析出的主体，令牌无效或过期返回 null */
     public Principal parse(String token) {
         if (token == null) {
@@ -70,12 +66,11 @@ public class TokenService {
             return null;
         }
         long exp = Long.parseLong(parts[2]);
-        if (exp < System.currentTimeMillis()) {
+        if (exp<System.currentTimeMillis()) {
             return null;
         }
         return new Principal(Long.parseLong(parts[0]), parts[1], exp);
     }
-
     private byte[] sign(String body) {
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
@@ -85,30 +80,24 @@ public class TokenService {
             throw new IllegalStateException(e);
         }
     }
-
     private static String b64(byte[] bytes) {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
-
     public static final class Principal {
         private final Long userId;
         private final String username;
         private final long expiresAt;
-
         Principal(Long userId, String username, long expiresAt) {
             this.userId = userId;
             this.username = username;
             this.expiresAt = expiresAt;
         }
-
         public Long getUserId() {
             return userId;
         }
-
         public String getUsername() {
             return username;
         }
-
         public long getExpiresAt() {
             return expiresAt;
         }

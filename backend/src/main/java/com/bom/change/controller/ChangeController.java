@@ -1,23 +1,105 @@
 package com.bom.change.controller;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper; import com.bom.bom.entity.*; import com.bom.bom.mapper.*; import com.bom.bom.service.BomService; import com.bom.change.entity.*; import com.bom.change.mapper.*; import com.bom.common.*; import com.bom.system.auth.CurrentUser; import lombok.Data; import lombok.RequiredArgsConstructor; import org.springframework.web.bind.annotation.*; import org.springframework.transaction.annotation.Transactional; import java.math.*; import java.time.*; import java.util.*;
-@RestController @RequiredArgsConstructor public class ChangeController {
- private final EcrMapper ecrs; private final EcnMapper ecns; private final EcnItemMapper ecnItems; private final BomHeaderMapper boms; private final BomItemMapper bomItems; private final BomService bomService; private final CodeGenerator codes;
- @GetMapping("/api/ecrs") public R<List<Ecr>> ecrList(){return R.ok(ecrs.selectList(null));}
- @PostMapping("/api/ecrs") public R<Ecr> ecr(@RequestBody Ecr x){x.setId(null);x.setEcrNo(codes.next("ECR").replace("-",""));x.setStatus("DRAFT");x.setRequester(CurrentUser.get()==null?null:CurrentUser.get().getUsername());ecrs.insert(x);return R.ok(x);}
- @PostMapping("/api/ecrs/{id}/submit") public R<Ecr> ecrSubmit(@PathVariable Long id){return ecrTransit(id,"DRAFT","SUBMITTED");}
- @PostMapping("/api/ecrs/{id}/approve") public R<Ecr> ecrApprove(@PathVariable Long id){Ecr x=ecrTransit(id,"SUBMITTED","APPROVED").getData();x.setApprovedBy(CurrentUser.get()==null?null:CurrentUser.get().getUsername());x.setApprovedAt(LocalDateTime.now());ecrs.updateById(x);return R.ok(x);}
- @PostMapping("/api/ecrs/{id}/reject") public R<Ecr> reject(@PathVariable Long id){return ecrTransit(id,"SUBMITTED","REJECTED");}
- @PostMapping("/api/ecrs/{id}/close") public R<Ecr> close(@PathVariable Long id){return ecrTransit(id,"APPROVED","CLOSED");}
- private R<Ecr> ecrTransit(Long id,String a,String b){Ecr x=ecrs.selectById(id);if(x==null||!a.equals(x.getStatus()))throw new BizException("ECR状态不允许操作");x.setStatus(b);ecrs.updateById(x);return R.ok(x);}
- @PostMapping("/api/ecrs/{id}/to-ecn") public R<Ecn> toEcn(@PathVariable Long id){Ecr x=ecrs.selectById(id);if(x==null||!"APPROVED".equals(x.getStatus()))throw new BizException("仅 APPROVED ECR 可生成 ECN");Ecn n=new Ecn();n.setEcrId(id);n.setEcnNo(codes.next("ECN").replace("-",""));n.setTitle(x.getTitle());n.setStatus("DRAFT");n.setEffectiveType("IMMEDIATE");ecns.insert(n);return R.ok(n);}
- @GetMapping("/api/ecns") public R<List<Ecn>> ecnList(){return R.ok(ecns.selectList(null));}
- @GetMapping("/api/ecns/{id}") public R<Ecn> ecn(@PathVariable Long id){return R.ok(ecns.selectById(id));}
- @PutMapping("/api/ecns/{id}") public R<Ecn> ecnEdit(@PathVariable Long id,@RequestBody Ecn x){x.setId(id);ecns.updateById(x);return R.ok(ecns.selectById(id));}
- @PostMapping("/api/ecns/{id}/items") public R<EcnItem> ecnItem(@PathVariable Long id,@RequestBody EcnItem x){x.setId(null);x.setEcnId(id);ecnItems.insert(x);return R.ok(x);}
- @GetMapping("/api/ecns/{id}/items") public R<List<EcnItem>> ecnItems(@PathVariable Long id){return R.ok(ecnItems.selectList(new QueryWrapper<EcnItem>().eq("ecn_id",id)));}
- @PostMapping("/api/ecns/{id}/submit") public R<Ecn> ecnSubmit(@PathVariable Long id){return transit(id,"DRAFT","SUBMITTED");}
- @PostMapping("/api/ecns/{id}/approve") public R<Ecn> ecnApprove(@PathVariable Long id){return transit(id,"SUBMITTED","APPROVED");}
- private R<Ecn> transit(Long id,String a,String b){Ecn x=ecns.selectById(id);if(x==null||!a.equals(x.getStatus()))throw new BizException("ECN状态不允许操作");x.setStatus(b);ecns.updateById(x);return R.ok(x);}
- @PostMapping("/api/ecns/{id}/implement") @Transactional public R<Ecn> implement(@PathVariable Long id){Ecn e=ecns.selectById(id);if(e==null||!"APPROVED".equals(e.getStatus()))throw new BizException("仅 APPROVED ECN 可实施");if(e.getBomId()==null)throw new BizException("ECN目标 BOM 不能为空");BomHeader n=bomService.newVersion(e.getBomId());for(EcnItem c:ecnItems.selectList(new QueryWrapper<EcnItem>().eq("ecn_id",id))){if("REPLACE".equals(c.getAction())){for(BomItem i:bomService.itemList(n.getId()))if(Objects.equals(i.getParentPartId(),c.getParentPartId())&&Objects.equals(i.getChildPartId(),c.getOldChildPartId())){i.setChildPartId(c.getNewChildPartId());if(c.getNewQty()!=null)i.setQty(c.getNewQty());bomItems.updateById(i);}}else if("REMOVE".equals(c.getAction())){for(BomItem i:bomService.itemList(n.getId()))if(Objects.equals(i.getParentPartId(),c.getParentPartId())&&Objects.equals(i.getChildPartId(),c.getOldChildPartId()))bomItems.deleteById(i.getId());}else if("ADD".equals(c.getAction())){BomItem i=new BomItem();i.setParentPartId(c.getParentPartId());i.setChildPartId(c.getNewChildPartId());i.setQty(c.getNewQty());i.setFindNo(c.getFindNo());i.setUsageCondition(c.getUsageCondition());bomService.add(n.getId(),i);}}bomService.transition(n.getId(),"DRAFT","RELEASED");BomHeader old=boms.selectById(e.getBomId());old.setStatus("OBSOLETE");boms.updateById(old);e.setImplementedBomId(n.getId());e.setStatus("IMPLEMENTED");ecns.updateById(e);return R.ok(e);}
- @Data public static class Dummy{}
+
+import com.bom.change.entity.Ecr;
+import com.bom.change.entity.Ecn;
+import com.bom.change.entity.EcnItem;
+import com.bom.change.service.EcnService;
+import com.bom.change.service.EcrService;
+import com.bom.common.R;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping
+@RequiredArgsConstructor
+public class ChangeController {
+
+    private final EcrService ecrService;
+    private final EcnService ecnService;
+
+    @GetMapping("/api/ecrs")
+    public R<List<Ecr>> ecrList() {
+        return R.ok(ecrService.list());
+    }
+
+    @PostMapping("/api/ecrs")
+    public R<Ecr> createEcr(@RequestBody Ecr ecr) {
+        return R.ok(ecrService.create(ecr));
+    }
+
+    @PostMapping("/api/ecrs/{id}/submit")
+    public R<Ecr> submitEcr(@PathVariable Long id) {
+        return R.ok(ecrService.submit(id));
+    }
+
+    @PostMapping("/api/ecrs/{id}/approve")
+    public R<Ecr> approveEcr(@PathVariable Long id) {
+        return R.ok(ecrService.approve(id));
+    }
+
+    @PostMapping("/api/ecrs/{id}/reject")
+    public R<Ecr> rejectEcr(@PathVariable Long id) {
+        return R.ok(ecrService.reject(id));
+    }
+
+    @PostMapping("/api/ecrs/{id}/close")
+    public R<Ecr> closeEcr(@PathVariable Long id) {
+        return R.ok(ecrService.close(id));
+    }
+
+    @PostMapping("/api/ecrs/{id}/to-ecn")
+    public R<Ecn> toEcn(@PathVariable Long id) {
+        return R.ok(ecrService.toEcn(id));
+    }
+
+    @GetMapping("/api/ecns")
+    public R<List<Ecn>> ecnList() {
+        return R.ok(ecnService.list());
+    }
+
+    @GetMapping("/api/ecns/{id}")
+    public R<Ecn> getEcn(@PathVariable Long id) {
+        return R.ok(ecnService.get(id));
+    }
+
+    @PutMapping("/api/ecns/{id}")
+    public R<Ecn> updateEcn(@PathVariable Long id, @RequestBody Ecn ecn) {
+        return R.ok(ecnService.update(id, ecn));
+    }
+
+    @PostMapping("/api/ecns/{id}/items")
+    public R<EcnItem> addEcnItem(
+            @PathVariable Long id,
+            @RequestBody EcnItem item) {
+        return R.ok(ecnService.addItem(id, item));
+    }
+
+    @GetMapping("/api/ecns/{id}/items")
+    public R<List<EcnItem>> listEcnItems(@PathVariable Long id) {
+        return R.ok(ecnService.items(id));
+    }
+
+    @PostMapping("/api/ecns/{id}/submit")
+    public R<Ecn> submitEcn(@PathVariable Long id) {
+        return R.ok(ecnService.submit(id));
+    }
+
+    @PostMapping("/api/ecns/{id}/approve")
+    public R<Ecn> approveEcn(@PathVariable Long id) {
+        return R.ok(ecnService.approve(id));
+    }
+
+    @PostMapping("/api/ecns/{id}/implement")
+    public R<Ecn> implementEcn(@PathVariable Long id) {
+        return R.ok(ecnService.implement(id));
+    }
 }

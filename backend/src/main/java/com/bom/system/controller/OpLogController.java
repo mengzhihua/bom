@@ -17,16 +17,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class OpLogController {
     private final OpLogMapper mapper;
-
     @GetMapping("/page")
-    public R<Page<OpLog>> page(@RequestParam(defaultValue = "1") long current,
-                               @RequestParam(defaultValue = "20") long size,
-                               @RequestParam(required = false) String username,
-                               @RequestParam(required = false) String keyword) {
+public R<Page<OpLog>> page(
+    @RequestParam(defaultValue = "1") long current,
+    @RequestParam(defaultValue = "20") long size,
+    @RequestParam(required = false) String username,
+    @RequestParam(required = false) String keyword) {
         LambdaQueryWrapper<OpLog> qw = new LambdaQueryWrapper<OpLog>()
                 .eq(StringUtils.isNotBlank(username), OpLog::getUsername, username)
                 .like(StringUtils.isNotBlank(keyword), OpLog::getPath, keyword)
                 .orderByDesc(OpLog::getId);
-        return R.ok(mapper.selectPage(new Page<>(current, size), qw));
+        return R.ok(mapper.selectPage(new Page <>(current, size), qw));
     }
 }

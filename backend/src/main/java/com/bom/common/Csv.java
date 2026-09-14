@@ -3,7 +3,6 @@ package com.bom.common;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,11 +17,10 @@ import java.util.function.Function;
 public final class Csv {
     private Csv() {
     }
-
-    public static <T> ResponseEntity<byte[]> download(String fileName, String[] headers, List<T> rows, Function<T, Object[]> mapper) {
+    public static<T> ResponseEntity<byte[]> download(String fileName, String[] headers, List<T> rows, Function<T, Object[]> mapper) {
         StringBuilder sb = new StringBuilder("\uFEFF");
         appendRow(sb, headers);
-        for (T row : rows) {
+        for (T row: rows) {
             appendRow(sb, mapper.apply(row));
         }
         byte[] body = sb.toString().getBytes(StandardCharsets.UTF_8);
@@ -32,29 +30,24 @@ public final class Csv {
         } catch (IOException e) {
             encoded = "export.csv";
         }
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encoded)
-                .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
-                .body(body);
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encoded).contentType(new MediaType("text", "csv", StandardCharsets.UTF_8)).body(body);
     }
-
     private static void appendRow(StringBuilder sb, Object[] cells) {
-        for (int i = 0; i < cells.length; i++) {
-            if (i > 0) {
+        for (int i = 0; i<cells.length; i ++) {
+            if (i> 0) {
                 sb.append(',');
             }
-            String v = cells[i] == null ? "" : String.valueOf(cells[i]);
-            if (v.indexOf(',') >= 0 || v.indexOf('"') >= 0 || v.indexOf('\n') >= 0) {
+            String v = cells[i] == null ? "": String.valueOf(cells[i]);
+            if (v.indexOf(',')>= 0 || v.indexOf('"')>= 0 || v.indexOf('\n')>= 0) {
                 v = '"' + v.replace("\"", "\"\"") + '"';
             }
             sb.append(v);
         }
         sb.append("\r\n");
     }
-
     /** Parses CSV rows (handles quotes, strips BOM); first row is header. */
     public static List<String[]> read(InputStream in) throws IOException {
-        List<String[]> rows = new ArrayList<>();
+        List<String[]> rows = new ArrayList <>();
         try (BufferedReader r = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
             String line;
             boolean first = true;
@@ -73,18 +66,17 @@ public final class Csv {
         }
         return rows;
     }
-
     private static String[] split(String line) {
-        List<String> out = new ArrayList<>();
+        List<String> out = new ArrayList <>();
         StringBuilder cur = new StringBuilder();
         boolean quoted = false;
-        for (int i = 0; i < line.length(); i++) {
+        for (int i = 0; i<line.length(); i ++) {
             char c = line.charAt(i);
             if (quoted) {
                 if (c == '"') {
-                    if (i + 1 < line.length() && line.charAt(i + 1) == '"') {
+                    if (i + 1<line.length() && line.charAt(i + 1) == '"') {
                         cur.append('"');
-                        i++;
+                        i ++;
                     } else {
                         quoted = false;
                     }

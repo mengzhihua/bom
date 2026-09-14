@@ -7,32 +7,29 @@ import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerIntercept
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import java.time.LocalDateTime;
 
 @Configuration
 public class MybatisPlusConfig {
-
     @Bean
-    public MybatisPlusInterceptor mybatisPlusInterceptor() {
+public MybatisPlusInterceptor mybatisPlusInterceptor() {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
         interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.H2));
         return interceptor;
     }
-
     @Bean
-    public MetaObjectHandler metaObjectHandler() {
+public MetaObjectHandler metaObjectHandler() {
         return new MetaObjectHandler() {
             @Override
-            public void insertFill(MetaObject metaObject) {
+public void insertFill(MetaObject metaObject) {
                 strictInsertFill(metaObject, "createdAt", LocalDateTime.class, LocalDateTime.now());
                 strictInsertFill(metaObject, "updatedAt", LocalDateTime.class, LocalDateTime.now());
             }
-
             @Override
-            public void updateFill(MetaObject metaObject) {
+public void updateFill(MetaObject metaObject) {
                 setFieldValByName("updatedAt", LocalDateTime.now(), metaObject);
             }
-        };
+        }
+        ;
     }
 }

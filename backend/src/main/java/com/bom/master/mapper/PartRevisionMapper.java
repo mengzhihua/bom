@@ -1,1 +1,7 @@
-package com.bom.master.mapper; import com.baomidou.mybatisplus.core.mapper.BaseMapper; import com.bom.master.entity.PartRevision; public interface PartRevisionMapper extends BaseMapper<PartRevision>{}
+package com.bom.master.mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.bom.master.entity.PartRevision;
+
+public interface PartRevisionMapper extends BaseMapper<PartRevision> {
+}

@@ -12,18 +12,45 @@ INSERT INTO bom_supplier(supplier_code,name,sap_vendor,srm_code,status) SELECT '
 INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,unit_cost,weight_kg,is_phantom) SELECT 'V-M01','A','星耀SUV整车总成','ASSEMBLY','BODY','EA','MAKE','RELEASED',200000,1500,FALSE WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='V-M01' AND revision='A');
 INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,unit_cost,weight_kg,is_phantom) SELECT 'P-BODY','A','车身总成','ASSEMBLY','BODY','EA','MAKE','RELEASED',30000,400,FALSE WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-BODY' AND revision='A');
 INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,unit_cost,weight_kg,is_phantom) SELECT 'P-POWER','A','动力总成','ASSEMBLY','POWERTRAIN','EA','MAKE','RELEASED',55000,450,FALSE WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-POWER' AND revision='A');
-INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,unit_cost,weight_kg,is_phantom) SELECT 'P-ENGINE15','A','1.5T发动机','SUB_ASSEMBLY','POWERTRAIN','EA','BUY','RELEASED',18000,180,FALSE WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-ENGINE15' AND revision='A');
-INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,unit_cost,weight_kg,is_phantom) SELECT 'P-ENGINE20','A','2.0T发动机','SUB_ASSEMBLY','POWERTRAIN','EA','BUY','RELEASED',23000,210,FALSE WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-ENGINE20' AND revision='A');
-INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,unit_cost,weight_kg,is_phantom) SELECT 'P-GEAR-MT','A','手动变速箱','SUB_ASSEMBLY','POWERTRAIN','EA','BUY','RELEASED',9000,80,FALSE WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-GEAR-MT' AND revision='A');
-INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,unit_cost,weight_kg,is_phantom) SELECT 'P-GEAR-AT','A','自动变速箱','SUB_ASSEMBLY','POWERTRAIN','EA','BUY','RELEASED',13000,95,FALSE WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-GEAR-AT' AND revision='A');
+INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,unit_cost,weight_kg,is_phantom)
+SELECT 'P-ENGINE15','A','1.5T发动机','SUB_ASSEMBLY','POWERTRAIN','EA','BUY','RELEASED',18000,180,FALSE
+WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-ENGINE15' AND revision='A');
+INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,unit_cost,weight_kg,is_phantom)
+SELECT 'P-ENGINE20','A','2.0T发动机','SUB_ASSEMBLY','POWERTRAIN','EA','BUY','RELEASED',23000,210,FALSE
+WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-ENGINE20' AND revision='A');
+INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,unit_cost,weight_kg,is_phantom)
+SELECT 'P-GEAR-MT','A','手动变速箱','SUB_ASSEMBLY','POWERTRAIN','EA','BUY','RELEASED',9000,80,FALSE
+WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-GEAR-MT' AND revision='A');
+INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,unit_cost,weight_kg,is_phantom)
+SELECT 'P-GEAR-AT','A','自动变速箱','SUB_ASSEMBLY','POWERTRAIN','EA','BUY','RELEASED',13000,95,FALSE
+WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-GEAR-AT' AND revision='A');
 INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,unit_cost,weight_kg,is_phantom) SELECT 'P-DOOR-FL','A','左前车门','PART','BODY','EA','BUY','RELEASED',2500,32,FALSE WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-DOOR-FL' AND revision='A');
 INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,unit_cost,weight_kg,is_phantom) SELECT 'P-BOLT','A','六角螺栓','STANDARD','CHASSIS','EA','BUY','RELEASED',1.2,.05,FALSE WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-BOLT' AND revision='A');
 INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,unit_cost,weight_kg,is_phantom) SELECT 'P-WIRE','A','整车线束','PART','ELECTRICAL','EA','BUY','DRAFT',1200,12,FALSE WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-WIRE' AND revision='A');
-INSERT INTO bom_header(bom_no,bom_type,root_part_id,vehicle_model_id,version,status,description) SELECT 'BOM-M01-EBOM','EBOM',(SELECT id FROM bom_part WHERE part_no='V-M01'),(SELECT id FROM bom_vehicle_model WHERE model_code='M01'),1,'RELEASED','M01示范工程BOM' WHERE NOT EXISTS(SELECT 1 FROM bom_header WHERE bom_no='BOM-M01-EBOM');
-INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition) SELECT h.id,h.root_part_id,p.id,10,1,'EA','NORMAL',NULL FROM bom_header h,bom_part p WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-BODY' AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
-INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition) SELECT h.id,h.root_part_id,p.id,20,1,'EA','NORMAL',NULL FROM bom_header h,bom_part p WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-POWER' AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
-INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition) SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-POWER'),p.id,10,1,'EA','OPTIONAL','ENGINE=1.5T' FROM bom_header h,bom_part p WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-ENGINE15' AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
-INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition) SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-POWER'),p.id,20,1,'EA','OPTIONAL','ENGINE=2.0T' FROM bom_header h,bom_part p WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-ENGINE20' AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_header(bom_no,bom_type,root_part_id,vehicle_model_id,version,status,description)
+SELECT 'BOM-M01-EBOM','EBOM',(SELECT id FROM bom_part WHERE part_no='V-M01'),
+       (SELECT id FROM bom_vehicle_model WHERE model_code='M01'),1,'RELEASED','M01示范工程BOM'
+WHERE NOT EXISTS(SELECT 1 FROM bom_header WHERE bom_no='BOM-M01-EBOM');
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,h.root_part_id,p.id,10,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-BODY'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,h.root_part_id,p.id,20,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-POWER'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-POWER'),p.id,10,1,'EA','OPTIONAL','ENGINE=1.5T'
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-ENGINE15'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-POWER'),p.id,20,1,'EA','OPTIONAL','ENGINE=2.0T'
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-ENGINE20'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
 MERGE INTO bom_feature KEY(feature,vehicle_model_id) VALUES (1,(SELECT id FROM bom_vehicle_model WHERE model_code='M01'),'ENGINE','发动机');
 MERGE INTO bom_feature KEY(feature,vehicle_model_id) VALUES (2,(SELECT id FROM bom_vehicle_model WHERE model_code='M01'),'TRANS','变速箱');
 MERGE INTO bom_feature KEY(feature,vehicle_model_id) VALUES (3,(SELECT id FROM bom_vehicle_model WHERE model_code='M01'),'COLOR','颜色');
@@ -110,12 +137,39 @@ INSERT INTO bom_feature_option(feature_id,option_code,option_name) SELECT (SELEC
 INSERT INTO bom_feature_option(feature_id,option_code,option_name) SELECT (SELECT id FROM bom_feature WHERE feature='ENGINE'),'2.0T','2.0T' WHERE NOT EXISTS(SELECT 1 FROM bom_feature_option WHERE option_code='2.0T');
 INSERT INTO bom_feature_option(feature_id,option_code,option_name) SELECT (SELECT id FROM bom_feature WHERE feature='TRANS'),'MT','MT' WHERE NOT EXISTS(SELECT 1 FROM bom_feature_option WHERE option_code='MT');
 INSERT INTO bom_feature_option(feature_id,option_code,option_name) SELECT (SELECT id FROM bom_feature WHERE feature='TRANS'),'AT','AT' WHERE NOT EXISTS(SELECT 1 FROM bom_feature_option WHERE option_code='AT');
-INSERT INTO bom_ecr(ecr_no,title,reason,priority,vehicle_model_id,affected_part_ids,description,status,requester,approved_by,approved_at) SELECT 'ECR-DEMO-001','发动机供应商替换','SUPPLY','HIGH',(SELECT id FROM bom_vehicle_model WHERE model_code='M01'),'[]','演示工程变更','APPROVED','admin','admin',CURRENT_TIMESTAMP WHERE NOT EXISTS(SELECT 1 FROM bom_ecr WHERE ecr_no='ECR-DEMO-001');
-INSERT INTO bom_ecn(ecn_no,ecr_id,title,bom_id,change_type,effective_type,status) SELECT 'ECN-DEMO-001',e.id,'自动变速箱替换',(SELECT id FROM bom_header WHERE bom_no='BOM-M01-EBOM'),'REPLACE','IMMEDIATE','DRAFT' FROM bom_ecr e WHERE e.ecr_no='ECR-DEMO-001' AND NOT EXISTS(SELECT 1 FROM bom_ecn WHERE ecn_no='ECN-DEMO-001');
-INSERT INTO bom_header(bom_no,bom_type,root_part_id,vehicle_model_id,plant_id,version,status,description,source_bom_id) SELECT 'BOM-M01-MBOM','MBOM',(SELECT id FROM bom_part WHERE part_no='V-M01'),(SELECT id FROM bom_vehicle_model WHERE model_code='M01'),(SELECT id FROM bom_plant WHERE plant_code='P001'),1,'RELEASED','M01示范制造BOM',(SELECT id FROM bom_header WHERE bom_no='BOM-M01-EBOM') WHERE NOT EXISTS(SELECT 1 FROM bom_header WHERE bom_no='BOM-M01-MBOM');
-INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,station_code) SELECT h.id,h.root_part_id,p.id,10,1,'EA','NORMAL','FA010' FROM bom_header h,bom_part p WHERE h.bom_no='BOM-M01-MBOM' AND p.part_no='P-BODY' AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
-INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,station_code) SELECT h.id,h.root_part_id,p.id,20,1,'EA','NORMAL','FA030' FROM bom_header h,bom_part p WHERE h.bom_no='BOM-M01-MBOM' AND p.part_no='P-POWER' AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
-INSERT INTO bom_header(bom_no,bom_type,root_part_id,vehicle_model_id,version,status,description,source_bom_id) SELECT 'BOM-M01-EBOM-V2','EBOM',(SELECT id FROM bom_part WHERE part_no='V-M01'),(SELECT id FROM bom_vehicle_model WHERE model_code='M01'),2,'DRAFT','M01对比演示版本',(SELECT id FROM bom_header WHERE bom_no='BOM-M01-EBOM') WHERE NOT EXISTS(SELECT 1 FROM bom_header WHERE bom_no='BOM-M01-EBOM-V2');
+INSERT INTO bom_ecr(ecr_no,title,reason,priority,vehicle_model_id,affected_part_ids,description,status,requester,approved_by,approved_at)
+SELECT 'ECR-DEMO-001','发动机供应商替换','SUPPLY','HIGH',
+       (SELECT id FROM bom_vehicle_model WHERE model_code='M01'),'[]','演示工程变更',
+       'APPROVED','admin','admin',CURRENT_TIMESTAMP
+WHERE NOT EXISTS(SELECT 1 FROM bom_ecr WHERE ecr_no='ECR-DEMO-001');
+INSERT INTO bom_ecn(ecn_no,ecr_id,title,bom_id,change_type,effective_type,status)
+SELECT 'ECN-DEMO-001',e.id,'自动变速箱替换',
+       (SELECT id FROM bom_header WHERE bom_no='BOM-M01-EBOM'),
+       'REPLACE','IMMEDIATE','DRAFT'
+FROM bom_ecr e
+WHERE e.ecr_no='ECR-DEMO-001'
+  AND NOT EXISTS(SELECT 1 FROM bom_ecn WHERE ecn_no='ECN-DEMO-001');
+INSERT INTO bom_header(bom_no,bom_type,root_part_id,vehicle_model_id,plant_id,version,status,description,source_bom_id)
+SELECT 'BOM-M01-MBOM','MBOM',(SELECT id FROM bom_part WHERE part_no='V-M01'),
+       (SELECT id FROM bom_vehicle_model WHERE model_code='M01'),
+       (SELECT id FROM bom_plant WHERE plant_code='P001'),1,'RELEASED',
+       'M01示范制造BOM',(SELECT id FROM bom_header WHERE bom_no='BOM-M01-EBOM')
+WHERE NOT EXISTS(SELECT 1 FROM bom_header WHERE bom_no='BOM-M01-MBOM');
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,station_code)
+SELECT h.id,h.root_part_id,p.id,10,1,'EA','NORMAL','FA010'
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-MBOM' AND p.part_no='P-BODY'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,station_code)
+SELECT h.id,h.root_part_id,p.id,20,1,'EA','NORMAL','FA030'
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-MBOM' AND p.part_no='P-POWER'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_header(bom_no,bom_type,root_part_id,vehicle_model_id,version,status,description,source_bom_id)
+SELECT 'BOM-M01-EBOM-V2','EBOM',(SELECT id FROM bom_part WHERE part_no='V-M01'),
+       (SELECT id FROM bom_vehicle_model WHERE model_code='M01'),2,'DRAFT',
+       'M01对比演示版本',(SELECT id FROM bom_header WHERE bom_no='BOM-M01-EBOM')
+WHERE NOT EXISTS(SELECT 1 FROM bom_header WHERE bom_no='BOM-M01-EBOM-V2');
 INSERT INTO bom_work_station(plant_id,line_code,station_code,station_name,seq,takt) SELECT p.id,'FA','FA010','车身上线',10,60 FROM bom_plant p WHERE p.plant_code='P001' AND NOT EXISTS(SELECT 1 FROM bom_work_station WHERE station_code='FA010');
 INSERT INTO bom_work_station(plant_id,line_code,station_code,station_name,seq,takt) SELECT p.id,'FA','FA020','底盘装配',20,60 FROM bom_plant p WHERE p.plant_code='P001' AND NOT EXISTS(SELECT 1 FROM bom_work_station WHERE station_code='FA020');
 INSERT INTO bom_work_station(plant_id,line_code,station_code,station_name,seq,takt) SELECT p.id,'FA','FA030','动力总成',30,60 FROM bom_plant p WHERE p.plant_code='P001' AND NOT EXISTS(SELECT 1 FROM bom_work_station WHERE station_code='FA030');

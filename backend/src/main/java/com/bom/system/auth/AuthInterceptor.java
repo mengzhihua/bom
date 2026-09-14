@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -19,16 +18,13 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class AuthInterceptor implements HandlerInterceptor {
     public static final String LOGIN_PATH = "/api/auth/login";
-
     private final TokenService tokenService;
     private final UserMapper userMapper;
     private final ObjectMapper objectMapper;
-
     @Override
-    public boolean preHandle(HttpServletRequest req, HttpServletResponse res, Object handler) throws IOException {
+public boolean preHandle(HttpServletRequest req, HttpServletResponse res, Object handler) throws IOException {
         String uri = req.getRequestURI();
-        if ("OPTIONS".equalsIgnoreCase(req.getMethod()) || LOGIN_PATH.equals(uri)
-                || uri.startsWith("/api/integration/wms/")) {
+        if ("OPTIONS".equalsIgnoreCase(req.getMethod()) || LOGIN_PATH.equals(uri) || uri.startsWith("/api/integration/wms/")) {
             // WMS 回调/推送走 X-Api-Key 鉴权（控制器内校验），免登录
             return true;
         }
@@ -46,19 +42,16 @@ public class AuthInterceptor implements HandlerInterceptor {
         CurrentUser.set(user);
         return true;
     }
-
     @Override
-    public void afterCompletion(HttpServletRequest req, HttpServletResponse res, Object handler, Exception ex) {
+public void afterCompletion(HttpServletRequest req, HttpServletResponse res, Object handler, Exception ex) {
         CurrentUser.clear();
     }
-
     private static String bearer(String header) {
         if (header != null && header.regionMatches(true, 0, "Bearer ", 0, 7)) {
             return header.substring(7).trim();
         }
         return null;
     }
-
     private boolean reject(HttpServletResponse res, HttpStatus status, String msg) throws IOException {
         res.setStatus(status.value());
         res.setContentType(MediaType.APPLICATION_JSON_VALUE);

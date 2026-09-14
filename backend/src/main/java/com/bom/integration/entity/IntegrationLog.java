@@ -4,12 +4,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.bom.common.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import com.baomidou.mybatisplus.annotation.TableField;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
 
 /** 集成日志 */
 @Data
