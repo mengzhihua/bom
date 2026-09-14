@@ -65,7 +65,7 @@ public class EcnService {
     }
 
     @Transactional
-public Ecn implement(Long id) {
+    public Ecn implement(Long id) {
         Ecn ecn = require(id);
         if (!"APPROVED".equals(ecn.getStatus())) {
             throw new BizException("仅 APPROVED ECN 可实施");

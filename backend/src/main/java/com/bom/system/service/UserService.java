@@ -26,10 +26,10 @@ public class UserService implements ApplicationRunner {
     private final UserMapper userMapper;
     private final TokenService tokenService;
     @Value("${bom.auth.admin-password:admin123}")
-private String initialAdminPassword;
+    private String initialAdminPassword;
     /** 首次启动无任何用户时创建演示账号（口令来自 srm.auth.admin-password / BOM_ADMIN_PASSWORD） */
     @Override
-public void run(ApplicationArguments args) {
+    public void run(ApplicationArguments args) {
         resetDemoPasswordIfNeeded("admin", initialAdminPassword);
         resetDemoPasswordIfNeeded("eng", "eng123");
         resetDemoPasswordIfNeeded("plan", "plan123");
@@ -40,7 +40,7 @@ public void run(ApplicationArguments args) {
         createIfMissing("viewer", "viewer123", "只读用户", User.VIEWER, null);
     }
     private void resetDemoPasswordIfNeeded(String username, String password) {
-        User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User :: getUsername, username));
+        User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, username));
         if (user != null && !PasswordHasher.verify(password, user.getPassword())) {
             User update = new User();
             update.setId(user.getId());
@@ -49,7 +49,7 @@ public void run(ApplicationArguments args) {
         }
     }
     private void createIfMissing(String username, String password, String realName, String role, String supplierCode) {
-        if (userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User :: getUsername, username)) == null) {
+        if (userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, username)) == null) {
             createUser(username, password, realName, role, supplierCode);
         }
     }
@@ -64,13 +64,13 @@ public void run(ApplicationArguments args) {
         userMapper.insert(u);
     }
     @Data
-public static class LoginResult {
+    public static class LoginResult {
         private String token;
         private User user;
     }
     @Transactional
-public LoginResult login(String username, String password) {
-        User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User :: getUsername, username));
+    public LoginResult login(String username, String password) {
+        User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, username));
         if (user == null || !PasswordHasher.verify(password, user.getPassword())) {
             throw new BizException("用户名或密码错误");
         }
@@ -85,7 +85,7 @@ public LoginResult login(String username, String password) {
         return r;
     }
     @Transactional
-public void changePassword(Long userId, String oldPassword, String newPassword) {
+    public void changePassword(Long userId, String oldPassword, String newPassword) {
         User user = userMapper.selectById(userId);
         if (user == null || !PasswordHasher.verify(oldPassword, user.getPassword())) {
             throw new BizException("原密码错误");
@@ -122,13 +122,13 @@ public void changePassword(Long userId, String oldPassword, String newPassword) 
         if (!demoted) {
             return;
         }
-        Long admins = userMapper.selectCount(new LambdaQueryWrapper<User>().eq(User :: getRole, User.ADMIN).eq(User :: getStatus, 1).ne(User :: getId, userId));
+        Long admins = userMapper.selectCount(new LambdaQueryWrapper<User>().eq(User::getRole, User.ADMIN).eq(User::getStatus, 1).ne(User::getId, userId));
         if (admins == 0) {
             throw new BizException("至少保留一个启用的管理员账号");
         }
     }
     private static String requireStrong(String pwd) {
-        if (pwd == null || pwd.length() <6) {
+        if (pwd == null || pwd.length() < 6) {
             throw new BizException("密码长度至少 6 位");
         }
         return pwd;

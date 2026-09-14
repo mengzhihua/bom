@@ -33,13 +33,15 @@ public void afterCompletion(HttpServletRequest req, HttpServletResponse res, Obj
         try {
             OpLog l = new OpLog();
             User u = CurrentUser.get();
-            l.setUsername(u != null ? u.getUsername(): null);
+            l.setUsername(u != null ? u.getUsername() : null);
             l.setMethod(method);
             l.setPath(trim(req.getRequestURI(), 255));
             l.setQuery(trim(req.getQueryString(), 255));
             l.setHttpStatus(res.getStatus());
             Object start = req.getAttribute(START);
-            l.setCostMs(start instanceof Long ? (int)(System.currentTimeMillis() - (Long) start): null);
+            l.setCostMs(start instanceof Long
+                    ? (int) (System.currentTimeMillis() - (Long) start)
+                    : null);
             l.setClientIp(trim(req.getRemoteAddr(), 64));
             l.setCreatedAt(LocalDateTime.now());
             mapper.insert(l);
@@ -48,6 +50,6 @@ public void afterCompletion(HttpServletRequest req, HttpServletResponse res, Obj
         }
     }
     private static String trim(String s, int max) {
-        return s == null || s.length() <= max ? s: s.substring(0, max);
+        return s == null || s.length() <= max ? s : s.substring(0, max);
     }
 }

@@ -5,7 +5,7 @@ import com.bom.system.entity.User;
 
 /** 当前请求线程绑定的登录用户 */
 public final class CurrentUser {
-    private static final ThreadLocal<User> HOLDER = new ThreadLocal <>();
+    private static final ThreadLocal<User> HOLDER = new ThreadLocal<>();
     private CurrentUser() {
     }
     public static User get() {
@@ -20,7 +20,7 @@ public final class CurrentUser {
     /** 当前用户绑定的供应商编码（若有） */
     public static String supplierCode() {
         User u = get();
-        return u == null ? null: u.getSupplierCode();
+        return u == null ? null : u.getSupplierCode();
     }
     /** 保留兼容入口 */
     public static void checkSupplier(String supplierCode) {

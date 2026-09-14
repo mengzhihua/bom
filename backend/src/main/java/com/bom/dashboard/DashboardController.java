@@ -31,10 +31,12 @@ public class DashboardController {
     private final OpLogMapper opLogs;
     @GetMapping("/summary")
 public R<Map<String, Object>> summary() {
-        Map<String, Object> m = new LinkedHashMap <>();
+        Map<String, Object> m = new LinkedHashMap<>();
         m.put("partCount", parts.selectCount(null));
-        Map<String, Long> lc = new LinkedHashMap <>();
-        for (Part p: parts.selectList(null)) lc.put(p.getLifecycle(), lc.getOrDefault(p.getLifecycle(), 0L) + 1);
+        Map<String, Long> lc = new LinkedHashMap<>();
+        for (Part p : parts.selectList(null)) {
+            lc.put(p.getLifecycle(), lc.getOrDefault(p.getLifecycle(), 0L) + 1);
+        }
         m.put("partsByLifecycle", lc);
         m.put("bomCount", boms.selectCount(null));
         m.put("bomByType", boms.selectMaps(new QueryWrapper<BomHeader>().select("bom_type,count(*) as count").groupBy("bom_type")));

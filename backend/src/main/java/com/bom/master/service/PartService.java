@@ -134,14 +134,14 @@ public class PartService {
                     continue;
                 }
                 String[] columns = line.split(",", -1);
-                if (columns.length <3) {
+                if (columns.length < 3) {
                     continue;
                 }
                 Part part = new Part();
                 part.setPartNo(columns[0]);
                 part.setRevision(columns[1]);
                 part.setPartName(columns[2]);
-                part.setLifecycle(columns.length> 3 ? columns[3] : "DRAFT");
+                part.setLifecycle(columns.length > 3 ? columns[3] : "DRAFT");
                 parts.insert(part);
                 count++;
             }

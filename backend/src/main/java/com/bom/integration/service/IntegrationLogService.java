@@ -73,7 +73,7 @@ public class IntegrationLogService {
     public void markRetried(Long logId) {
         IntegrationLog l = mapper.selectById(logId);
         if (l != null) {
-            l.setRetryCount(l.getRetryCount() == null ? 1: l.getRetryCount() + 1);
+            l.setRetryCount(l.getRetryCount() == null ? 1 : l.getRetryCount() + 1);
             mapper.updateById(l);
         }
     }
@@ -94,6 +94,6 @@ public class IntegrationLogService {
         return trim(s, MAX_LEN);
     }
     private static String trim(String s, int max) {
-        return s == null || s.length() <= max ? s: s.substring(0, max);
+        return s == null || s.length() <= max ? s : s.substring(0, max);
     }
 }

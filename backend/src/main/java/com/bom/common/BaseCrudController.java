@@ -23,7 +23,7 @@ import java.util.Map;
 */
 public abstract class BaseCrudController<T extends BaseEntity, M extends BaseMapper<T>> {
     @Autowired
-protected M mapper;
+    protected M mapper;
     private final Class<T> entityClass;
     protected BaseCrudController(Class<T> entityClass) {
         this.entityClass = entityClass;
@@ -36,10 +36,10 @@ public R<Page<T>> page(
     @RequestParam(defaultValue = "20") long size,
     @RequestParam(required = false) String keyword,
     @RequestParam Map<String, String> params) {
-        QueryWrapper<T> qw = new QueryWrapper <>();
+        QueryWrapper<T> qw = new QueryWrapper<>();
         if (StringUtils.isNotBlank(keyword)) {
             qw.and(w -> {
-                for (String col: keywordColumns()) {
+                for (String col : keywordColumns()) {
                     w.or().like(col, keyword);
                 }
             }
@@ -47,12 +47,12 @@ public R<Page<T>> page(
         }
         applyFilters(qw, params);
         qw.orderByDesc("id");
-        return R.ok(mapper.selectPage(new Page <>(current, size), qw));
+        return R.ok(mapper.selectPage(new Page<>(current, size), qw));
     }
     @GetMapping("/list")
 public R<List<T>> list(
     @RequestParam Map<String, String> params) {
-        QueryWrapper<T> qw = new QueryWrapper <>();
+        QueryWrapper<T> qw = new QueryWrapper<>();
         applyFilters(qw, params);
         qw.orderByAsc("id");
         return R.ok(mapper.selectList(qw));

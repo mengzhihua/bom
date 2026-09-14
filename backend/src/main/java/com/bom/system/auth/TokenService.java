@@ -66,7 +66,7 @@ public class TokenService {
             return null;
         }
         long exp = Long.parseLong(parts[2]);
-        if (exp<System.currentTimeMillis()) {
+        if (exp < System.currentTimeMillis()) {
             return null;
         }
         return new Principal(Long.parseLong(parts[0]), parts[1], exp);

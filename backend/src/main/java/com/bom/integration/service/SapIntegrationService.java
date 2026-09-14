@@ -23,7 +23,9 @@ public class SapIntegrationService {
         Part p = parts.selectById(id);
         if (p == null) throw new BizException("零件不存在");
         try {
-            p.setSapMaterial(p.getSapMaterial() == null ? "1000" + String.format("%06d", seq.incrementAndGet()): p.getSapMaterial());
+            p.setSapMaterial(p.getSapMaterial() == null
+                    ? "1000" + String.format("%06d", seq.incrementAndGet())
+                    : p.getSapMaterial());
             parts.updateById(p);
             log("CREATE_MATERIAL", id, p.getPartNo(), "SUCCESS", null);
             return p;

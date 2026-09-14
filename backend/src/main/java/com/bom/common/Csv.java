@@ -20,7 +20,7 @@ public final class Csv {
     public static<T> ResponseEntity<byte[]> download(String fileName, String[] headers, List<T> rows, Function<T, Object[]> mapper) {
         StringBuilder sb = new StringBuilder("\uFEFF");
         appendRow(sb, headers);
-        for (T row: rows) {
+        for (T row : rows) {
             appendRow(sb, mapper.apply(row));
         }
         byte[] body = sb.toString().getBytes(StandardCharsets.UTF_8);
@@ -38,7 +38,7 @@ public final class Csv {
                 sb.append(',');
             }
             String v = cells[i] == null ? "": String.valueOf(cells[i]);
-            if (v.indexOf(',')>= 0 || v.indexOf('"')>= 0 || v.indexOf('\n')>= 0) {
+            if (v.indexOf(',') >= 0 || v.indexOf('"') >= 0 || v.indexOf('\n') >= 0) {
                 v = '"' + v.replace("\"", "\"\"") + '"';
             }
             sb.append(v);
@@ -47,7 +47,7 @@ public final class Csv {
     }
     /** Parses CSV rows (handles quotes, strips BOM); first row is header. */
     public static List<String[]> read(InputStream in) throws IOException {
-        List<String[]> rows = new ArrayList <>();
+        List<String[]> rows = new ArrayList<>();
         try (BufferedReader r = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
             String line;
             boolean first = true;
@@ -67,14 +67,14 @@ public final class Csv {
         return rows;
     }
     private static String[] split(String line) {
-        List<String> out = new ArrayList <>();
+        List<String> out = new ArrayList<>();
         StringBuilder cur = new StringBuilder();
         boolean quoted = false;
-        for (int i = 0; i<line.length(); i ++) {
+        for (int i = 0; i < line.length(); i++) {
             char c = line.charAt(i);
             if (quoted) {
                 if (c == '"') {
-                    if (i + 1<line.length() && line.charAt(i + 1) == '"') {
+                    if (i + 1 < line.length() && line.charAt(i + 1) == '"') {
                         cur.append('"');
                         i ++;
                     } else {

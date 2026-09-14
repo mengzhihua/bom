@@ -17,10 +17,10 @@ public class WhereUsedController {
 public R<List<Map<String, Object>>> where(
     @PathVariable Long partId,
     @RequestParam(defaultValue = "true") boolean recursive) {
-        List<Map<String, Object>> out = new ArrayList <>();
-        for (BomItem i: items.selectList(new QueryWrapper<BomItem>().eq("child_part_id", partId))) {
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (BomItem i : items.selectList(new QueryWrapper<BomItem>().eq("child_part_id", partId))) {
             BomHeader h = headers.selectById(i.getBomId());
-            Map<String, Object> m = new LinkedHashMap <>();
+            Map<String, Object> m = new LinkedHashMap<>();
             m.put("bomNo", h.getBomNo());
             m.put("bomType", h.getBomType());
             m.put("parentPartId", i.getParentPartId());

@@ -10,6 +10,7 @@ import com.bom.master.entity.Part;
 import com.bom.master.mapper.PartMapper;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 import java.math.*;
 import java.util.*;
@@ -91,15 +92,19 @@ public R<List<Map<String, Object>>> summarized(
 public R<Map<String, Object>> rollup(
     @PathVariable Long id) {
         BigDecimal cost = BigDecimal.ZERO, weight = BigDecimal.ZERO;
-        for (Map<String, Object> x: service.explode(id, null, null)) {
+        for (Map<String, Object> x : service.explode(id, null, null)) {
             Part p = parts.selectById((Long) x.get("partId"));
             BigDecimal q = (BigDecimal) x.get("extendedQty");
             if (p != null) {
-                cost = cost.add(q.multiply(p.getUnitCost() == null ? BigDecimal.ZERO: p.getUnitCost()));
-                weight = weight.add(q.multiply(p.getWeightKg() == null ? BigDecimal.ZERO: p.getWeightKg()));
+                cost = cost.add(q.multiply(p.getUnitCost() == null
+                        ? BigDecimal.ZERO
+                        : p.getUnitCost()));
+                weight = weight.add(q.multiply(p.getWeightKg() == null
+                        ? BigDecimal.ZERO
+                        : p.getWeightKg()));
             }
         }
-        Map<String, Object> r = new LinkedHashMap <>();
+        Map<String, Object> r = new LinkedHashMap<>();
         r.put("totalCost", cost);
         r.put("totalWeight", weight);
         r.put("details", service.explode(id, null, null));
@@ -135,53 +140,67 @@ public R<Map<String, Object>> configure(
 public R<List<Map<String, Object>>> compare(
     @RequestParam Long leftId,
     @RequestParam Long rightId) {
-        Map<String, Map<String, Object>> left = keyed(leftId), right = keyed(rightId);
-        List<Map<String, Object>> out = new ArrayList <>();
-        for (String k: left.keySet()) if (!right.containsKey(k)) {
-            Map<String, Object> x = new LinkedHashMap <>();
+        Map<String, Map<String, Object>> left = keyed(leftId);
+        Map<String, Map<String, Object>> right = keyed(rightId);
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (String k : left.keySet()) {
+            if (!right.containsKey(k)) {
+            Map<String, Object> x = new LinkedHashMap<>();
             x.put("type", "REMOVED");
             x.put("key", k);
             x.put("left", left.get(k));
             out.add(x);
+            }
         }
-        for (String k: right.keySet()) if (!left.containsKey(k)) {
-            Map<String, Object> x = new LinkedHashMap <>();
+        for (String k : right.keySet()) {
+            if (!left.containsKey(k)) {
+            Map<String, Object> x = new LinkedHashMap<>();
             x.put("type", "ADDED");
             x.put("key", k);
             x.put("right", right.get(k));
             out.add(x);
+            }
         }
-        for (String k: left.keySet()) if (right.containsKey(k) && !String.valueOf(left.get(k)).equals(String.valueOf(right.get(k)))) {
-            Map<String, Object> x = new LinkedHashMap <>();
+        for (String k : left.keySet()) {
+            if (right.containsKey(k)
+                    && !String.valueOf(left.get(k)).equals(String.valueOf(right.get(k)))) {
+            Map<String, Object> x = new LinkedHashMap<>();
             x.put("type", "CHANGED");
             x.put("key", k);
             x.put("left", left.get(k));
             x.put("right", right.get(k));
             out.add(x);
+            }
         }
         return R.ok(out);
     }
     private Map<String, Map<String, Object>> keyed(Long id) {
-        Map<String, Map<String, Object>> r = new LinkedHashMap <>();
-        for (BomItem i: service.itemList(id)) r.put(i.getParentPartId() + "-" + i.getChildPartId(), new LinkedHashMap<String, Object>() {
-            {
-                put("qty", i.getQty()); put("findNo", i.getFindNo()); put("usageCondition", i.getUsageCondition()); put("stationCode", i.getStationCode());
-            }
+        Map<String, Map<String, Object>> r = new LinkedHashMap<>();
+        for (BomItem i : service.itemList(id)) {
+            Map<String, Object> value = new LinkedHashMap<>();
+            value.put("qty", i.getQty());
+            value.put("findNo", i.getFindNo());
+            value.put("usageCondition", i.getUsageCondition());
+            value.put("stationCode", i.getStationCode());
+            r.put(i.getParentPartId() + "-" + i.getChildPartId(), value);
         }
-        );
         return r;
     }
     private R<Map<String, Object>> result(Long id, Map<String, String> s) {
-        Map<String, Object> r = new LinkedHashMap <>();
+        Map<String, Object> r = new LinkedHashMap<>();
         r.put("tree", service.explode(id, null, s));
         r.put("summarized", service.summarized(id, s));
         BigDecimal cost = BigDecimal.ZERO, weight = BigDecimal.ZERO;
-        for (Map<String, Object> x: service.explode(id, null, s)) {
+        for (Map<String, Object> x : service.explode(id, null, s)) {
             Part p = parts.selectById((Long) x.get("partId"));
             BigDecimal q = (BigDecimal) x.get("extendedQty");
             if (p != null) {
-                cost = cost.add(q.multiply(p.getUnitCost() == null ? BigDecimal.ZERO: p.getUnitCost()));
-                weight = weight.add(q.multiply(p.getWeightKg() == null ? BigDecimal.ZERO: p.getWeightKg()));
+                cost = cost.add(q.multiply(p.getUnitCost() == null
+                        ? BigDecimal.ZERO
+                        : p.getUnitCost()));
+                weight = weight.add(q.multiply(p.getWeightKg() == null
+                        ? BigDecimal.ZERO
+                        : p.getWeightKg()));
             }
         }
         r.put("totalCost", cost);
@@ -193,9 +212,11 @@ public R<BomHeader> derive(
     @PathVariable Long id,
     @RequestBody Derive d) {
         BomHeader src = service.load(id);
-        if (!"EBOM".equals(src.getBomType())) throw new BizException("仅 EBOM 可派生");
+        if (!"EBOM".equals(src.getBomType())) {
+            throw new BizException("仅 EBOM 可派生");
+        }
         BomHeader h = new BomHeader();
-        org.springframework.beans.BeanUtils.copyProperties(src, h);
+        BeanUtils.copyProperties(src, h);
         h.setId(null);
         h.setBomNo(null);
         h.setBomType("MBOM");
@@ -204,7 +225,7 @@ public R<BomHeader> derive(
         h.setSourceBomId(id);
         h.setStatus("DRAFT");
         h = service.create(h);
-        for (BomItem i: service.itemList(id)) {
+        for (BomItem i : service.itemList(id)) {
             i.setId(null);
             i.setBomId(h.getId());
             items.insert(i);
