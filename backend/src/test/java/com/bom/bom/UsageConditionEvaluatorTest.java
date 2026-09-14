@@ -1,0 +1,3 @@
+package com.bom.bom;
+import com.bom.bom.service.UsageConditionEvaluator; import org.junit.jupiter.api.Test; import java.util.*; import static org.junit.jupiter.api.Assertions.*;
+public class UsageConditionEvaluatorTest {private final UsageConditionEvaluator e=new UsageConditionEvaluator(); private Map<String,String> s(String...v){Map<String,String>m=new HashMap<>();for(int i=0;i<v.length;i+=2)m.put(v[i],v[i+1]);return m;} @Test void expressions(){assertTrue(e.matches("",s()));assertTrue(e.matches("ENGINE=1.5T & TRANS=AT",s("ENGINE","1.5T","TRANS","AT")));assertTrue(e.matches("COLOR=RED | COLOR=BLK",s("COLOR","BLK")));assertTrue(e.matches("ENGINE!=2.0T",s("ENGINE","1.5T")));assertFalse(e.matches("UNKNOWN=X",s("ENGINE","1.5T")));}}
