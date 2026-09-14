@@ -375,8 +375,8 @@ SELECT e.id,
        (SELECT id FROM bom_part WHERE part_no='P-GEAR-AT'),
        1,
        1,
-       50,
-       'TRANS=AT',
+       40,
+       'TRANS=MT',
        '演示变速箱替换'
 FROM bom_ecn e
 WHERE e.ecn_no='ECN-DEMO-001'

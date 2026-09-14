@@ -237,11 +237,29 @@ public class BomService {
     @Transactional
     public BomHeader newVersion(Long id) {
         BomHeader old = load(id);
+        if (!"RELEASED".equals(old.getStatus())
+                && !"FROZEN".equals(old.getStatus())) {
+            throw new BizException("仅 RELEASED 或 FROZEN BOM 可升版");
+        }
+        Long draftCount = headers.selectCount(new QueryWrapper<BomHeader>()
+                .eq("bom_no", old.getBomNo())
+                .eq("status", "DRAFT"));
+        if (draftCount != null && draftCount > 0) {
+            throw new BizException("已存在未发布的新版本");
+        }
+        BomHeader latest = headers.selectOne(new QueryWrapper<BomHeader>()
+                .select("version")
+                .eq("bom_no", old.getBomNo())
+                .orderByDesc("version")
+                .last("LIMIT 1"));
+        int nextVersion = latest == null || latest.getVersion() == null
+                ? 1
+                : latest.getVersion() + 1;
         BomHeader header = new BomHeader();
         BeanUtils.copyProperties(old, header);
         header.setId(null);
         header.setBomNo(old.getBomNo());
-        header.setVersion(old.getVersion() + 1);
+        header.setVersion(nextVersion);
         header.setStatus("DRAFT");
         headers.insert(header);
         for (BomItem oldItem : itemList(id)) {

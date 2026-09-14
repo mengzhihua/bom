@@ -17,12 +17,16 @@ DEMO_ECN=$(api "$BASE/api/ecns" | jq -r '.data[] | select(.ecnNo == "ECN-DEMO-00
 if test -n "$DEMO_ECN"; then
     DEMO_STATUS=$(api "$BASE/api/ecns/$DEMO_ECN" | jq -r '.data.status')
     if test "$DEMO_STATUS" = "DRAFT"; then
-        step "implement demo ECN"
+        step "submit and approve demo ECN"
         api -X POST "$BASE/api/ecns/$DEMO_ECN/submit" | assert_ok
         api -X POST "$BASE/api/ecns/$DEMO_ECN/approve" | assert_ok
+        DEMO_STATUS=APPROVED
+    fi
+    if test "$DEMO_STATUS" = "APPROVED"; then
+        step "implement demo ECN"
         api -X POST "$BASE/api/ecns/$DEMO_ECN/implement" | assert_ok
-    else
-        test "$DEMO_STATUS" = "IMPLEMENTED"
+    elif test "$DEMO_STATUS" != "IMPLEMENTED"; then
+        false
     fi
 fi
 step "create part"
@@ -89,7 +93,7 @@ ECNID=$(jq -r '.data.id' <<<"$ECN")
 step "set ECN target BOM"
 api -X PUT "$BASE/api/ecns/$ECNID" -H 'Content-Type: application/json' -d "{\"bomId\":$BID,\"title\":\"Smoke ECN\"}" | assert_ok
 step "add ECN replace item"
-ECN_ITEM_PAYLOAD="{\"action\":\"REPLACE\",\"parentPartId\":$ROOT,\"oldChildPartId\":$PID,\"newChildPartId\":$CHILD,\"oldQty\":1,\"newQty\":1}"
+ECN_ITEM_PAYLOAD="{\"action\":\"REPLACE\",\"parentPartId\":$ROOT,\"oldChildPartId\":$PID,\"newChildPartId\":$CHILD,\"oldQty\":1,\"newQty\":1,\"findNo\":10}"
 api -X POST "$BASE/api/ecns/$ECNID/items" -H 'Content-Type: application/json' -d "$ECN_ITEM_PAYLOAD" | assert_ok
 step "submit ECN"
 api -X POST "$BASE/api/ecns/$ECNID/submit" | assert_ok

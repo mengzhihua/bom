@@ -35,10 +35,10 @@ export const canWrite = (module) => {
     return true
   }
   if (role === 'PLANNER') {
-    return ['mbom', 'master', 'process'].includes(module)
+    return ['mbom', 'plants', 'workstations', 'process'].includes(module)
   }
   if (role === 'ENGINEER') {
-    return ['parts', 'ebom', 'ecr', 'ecn'].includes(module)
+    return ['parts', 'ebom', 'ecr', 'ecn', 'master'].includes(module)
   }
   return false
 }

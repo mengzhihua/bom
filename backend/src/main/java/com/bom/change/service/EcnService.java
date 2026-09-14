@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -92,26 +93,7 @@ public class EcnService {
 
     int applyChange(Long bomId, EcnItem change) {
         List<BomItem> currentItems = bomService.itemList(bomId);
-        int matched = 0;
-        if ("REPLACE".equals(change.getAction())) {
-            for (BomItem item : currentItems) {
-                if (sameItem(item, change)) {
-                    matched++;
-                    item.setChildPartId(change.getNewChildPartId());
-                    if (change.getNewQty() != null) {
-                        item.setQty(change.getNewQty());
-                    }
-                    bomItems.updateById(item);
-                }
-            }
-        } else if ("REMOVE".equals(change.getAction())) {
-            for (BomItem item : currentItems) {
-                if (sameItem(item, change)) {
-                    matched++;
-                    bomItems.deleteById(item.getId());
-                }
-            }
-        } else if ("ADD".equals(change.getAction())) {
+        if ("ADD".equals(change.getAction())) {
             BomItem item = new BomItem();
             item.setParentPartId(change.getParentPartId());
             item.setChildPartId(change.getNewChildPartId());
@@ -120,29 +102,51 @@ public class EcnService {
             item.setUsageCondition(change.getUsageCondition());
             item.setStationCode(change.getStationCode());
             bomService.add(bomId, item);
-            matched = 1;
-        } else if ("MODIFY".equals(change.getAction())) {
-            for (BomItem item : currentItems) {
-                if (sameItem(item, change)) {
-                    matched++;
-                    item.setQty(change.getNewQty());
-                    item.setUsageCondition(change.getUsageCondition());
-                    item.setStationCode(change.getStationCode());
-                    bomItems.updateById(item);
-                }
-            }
-        } else if (!"ADD".equals(change.getAction())) {
+            return 1;
+        }
+        if (!"REPLACE".equals(change.getAction())
+                && !"REMOVE".equals(change.getAction())
+                && !"MODIFY".equals(change.getAction())) {
             throw new BizException("不支持的 ECN 动作: " + change.getAction());
         }
-        if (!"ADD".equals(change.getAction()) && matched == 0) {
+        List<BomItem> matches = currentItems.stream()
+                .filter(item -> sameItem(item, change))
+                .collect(Collectors.toList());
+        if (matches.isEmpty()) {
             throw new BizException("ECN 明细未匹配到 BOM 行");
         }
-        return matched;
+        if (matches.size() > 1) {
+            throw new BizException("匹配到多行，请指定序号/配置条件");
+        }
+        BomItem item = matches.get(0);
+        if ("REPLACE".equals(change.getAction())) {
+            item.setChildPartId(change.getNewChildPartId());
+            if (change.getNewQty() != null) {
+                item.setQty(change.getNewQty());
+            }
+            bomItems.updateById(item);
+        } else if ("REMOVE".equals(change.getAction())) {
+            bomItems.deleteById(item.getId());
+        } else {
+            item.setQty(change.getNewQty());
+            item.setUsageCondition(change.getUsageCondition());
+            item.setStationCode(change.getStationCode());
+            bomItems.updateById(item);
+        }
+        return 1;
     }
 
     private boolean sameItem(BomItem item, EcnItem change) {
-        return Objects.equals(item.getParentPartId(), change.getParentPartId())
-                && Objects.equals(item.getChildPartId(), change.getOldChildPartId());
+        boolean sameBase = Objects.equals(item.getParentPartId(),
+                change.getParentPartId())
+                && Objects.equals(item.getChildPartId(),
+                change.getOldChildPartId());
+        boolean sameFindNo = change.getFindNo() == null
+                || Objects.equals(item.getFindNo(), change.getFindNo());
+        return sameBase
+                && sameFindNo
+                && Objects.equals(item.getUsageCondition(),
+                change.getUsageCondition());
     }
 
     private Ecn transition(Long id, String from, String to) {
