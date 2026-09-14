@@ -5,7 +5,13 @@ import com.bom.change.entity.Ecn;
 import com.bom.change.entity.EcnItem;
 import com.bom.change.service.EcnService;
 import com.bom.change.service.EcrService;
+import com.bom.bom.entity.BomHeader;
+import com.bom.bom.mapper.BomHeaderMapper;
 import com.bom.common.R;
+import com.bom.master.entity.Part;
+import com.bom.master.entity.VehicleModel;
+import com.bom.master.mapper.PartMapper;
+import com.bom.master.mapper.VehicleModelMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,10 +31,21 @@ public class ChangeController {
 
     private final EcrService ecrService;
     private final EcnService ecnService;
+    private final BomHeaderMapper bomHeaders;
+    private final PartMapper parts;
+    private final VehicleModelMapper models;
 
     @GetMapping("/api/ecrs")
     public R<List<Ecr>> ecrList() {
-        return R.ok(ecrService.list());
+        List<Ecr> values = ecrService.list();
+        for (Ecr value : values) {
+            VehicleModel model = models.selectById(value.getVehicleModelId());
+            if (model != null) {
+                value.setVehicleModelCode(model.getModelCode());
+                value.setVehicleModelName(model.getModelName());
+            }
+        }
+        return R.ok(values);
     }
 
     @PostMapping("/api/ecrs")
@@ -47,8 +64,11 @@ public class ChangeController {
     }
 
     @PostMapping("/api/ecrs/{id}/reject")
-    public R<Ecr> rejectEcr(@PathVariable Long id) {
-        return R.ok(ecrService.reject(id));
+    public R<Ecr> rejectEcr(
+            @PathVariable Long id,
+            @RequestBody(required = false) Ecr payload) {
+        String reason = payload == null ? null : payload.getRejectReason();
+        return R.ok(ecrService.reject(id, reason));
     }
 
     @PostMapping("/api/ecrs/{id}/close")
@@ -63,12 +83,16 @@ public class ChangeController {
 
     @GetMapping("/api/ecns")
     public R<List<Ecn>> ecnList() {
-        return R.ok(ecnService.list());
+        List<Ecn> values = ecnService.list();
+        values.forEach(this::fillEcnNames);
+        return R.ok(values);
     }
 
     @GetMapping("/api/ecns/{id}")
     public R<Ecn> getEcn(@PathVariable Long id) {
-        return R.ok(ecnService.get(id));
+        Ecn value = ecnService.get(id);
+        fillEcnNames(value);
+        return R.ok(value);
     }
 
     @PutMapping("/api/ecns/{id}")
@@ -85,7 +109,13 @@ public class ChangeController {
 
     @GetMapping("/api/ecns/{id}/items")
     public R<List<EcnItem>> listEcnItems(@PathVariable Long id) {
-        return R.ok(ecnService.items(id));
+        List<EcnItem> values = ecnService.items(id);
+        for (EcnItem value : values) {
+            value.setParentPartNo(partNo(value.getParentPartId()));
+            value.setOldChildPartNo(partNo(value.getOldChildPartId()));
+            value.setNewChildPartNo(partNo(value.getNewChildPartId()));
+        }
+        return R.ok(values);
     }
 
     @PostMapping("/api/ecns/{id}/submit")
@@ -101,5 +131,27 @@ public class ChangeController {
     @PostMapping("/api/ecns/{id}/implement")
     public R<Ecn> implementEcn(@PathVariable Long id) {
         return R.ok(ecnService.implement(id));
+    }
+
+    private void fillEcnNames(Ecn value) {
+        if (value == null) {
+            return;
+        }
+        BomHeader bom = bomHeaders.selectById(value.getBomId());
+        if (bom != null) {
+            value.setBomNo(bom.getBomNo());
+        }
+        BomHeader implemented = bomHeaders.selectById(value.getImplementedBomId());
+        if (implemented != null) {
+            value.setImplementedBomNo(implemented.getBomNo());
+        }
+    }
+
+    private String partNo(Long id) {
+        if (id == null) {
+            return null;
+        }
+        Part part = parts.selectById(id);
+        return part == null ? null : part.getPartNo();
     }
 }

@@ -1,6 +1,7 @@
 package com.bom.change.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.bom.common.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -22,4 +23,10 @@ public class Ecr extends BaseEntity {
     private String rejectReason;
     private Long vehicleModelId;
     private LocalDateTime approvedAt;
+
+    @TableField(exist = false)
+    private String vehicleModelCode;
+
+    @TableField(exist = false)
+    private String vehicleModelName;
 }

@@ -53,8 +53,11 @@ public class EcrService {
         return ecr;
     }
 
-    public Ecr reject(Long id) {
-        return transition(id, "SUBMITTED", "REJECTED");
+    public Ecr reject(Long id, String rejectReason) {
+        Ecr ecr = transition(id, "SUBMITTED", "REJECTED");
+        ecr.setRejectReason(rejectReason);
+        ecrs.updateById(ecr);
+        return ecr;
     }
 
     public Ecr close(Long id) {

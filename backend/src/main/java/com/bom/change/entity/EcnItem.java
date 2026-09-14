@@ -1,6 +1,7 @@
 package com.bom.change.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.bom.common.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,4 +22,13 @@ public class EcnItem extends BaseEntity {
     private BigDecimal oldQty;
     private BigDecimal newQty;
     private Integer findNo;
+
+    @TableField(exist = false)
+    private String parentPartNo;
+
+    @TableField(exist = false)
+    private String oldChildPartNo;
+
+    @TableField(exist = false)
+    private String newChildPartNo;
 }

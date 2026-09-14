@@ -1,6 +1,7 @@
 package com.bom.change.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.bom.common.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,4 +21,10 @@ public class Ecn extends BaseEntity {
     private Long bomId;
     private Long implementedBomId;
     private LocalDate effectiveDate;
+
+    @TableField(exist = false)
+    private String bomNo;
+
+    @TableField(exist = false)
+    private String implementedBomNo;
 }

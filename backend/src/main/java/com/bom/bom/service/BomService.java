@@ -1,23 +1,40 @@
 package com.bom.bom.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.bom.bom.entity.*;
-import com.bom.bom.mapper.*;
-import com.bom.common.*;
+import com.bom.bom.entity.BomHeader;
+import com.bom.bom.entity.BomItem;
+import com.bom.bom.mapper.BomHeaderMapper;
+import com.bom.bom.mapper.BomItemMapper;
+import com.bom.common.BizException;
+import com.bom.common.CodeGenerator;
+import com.bom.common.Csv;
 import com.bom.master.entity.Part;
 import com.bom.master.mapper.PartMapper;
-import com.bom.master.mapper.PartRevisionMapper;
-import com.bom.master.entity.PartRevision;
-import com.bom.process.mapper.WorkStationMapper;
 import com.bom.process.entity.WorkStation;
+import com.bom.process.mapper.WorkStationMapper;
 import com.bom.system.auth.CurrentUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.math.*;
-import java.time.*;
-import java.util.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,39 +46,68 @@ public class BomService {
     private final WorkStationMapper stations;
 
     public BomHeader load(Long id) {
-        BomHeader h = headers.selectById(id);
-        if (h == null) throw new BizException("BOM不存在");
-        return h;
+        BomHeader header = headers.selectById(id);
+        if (header == null) {
+            throw new BizException("BOM不存在");
+        }
+        return header;
     }
 
     public List<BomItem> itemList(Long id) {
-        return items.selectList(new QueryWrapper<BomItem>().eq("bom_id", id).orderByAsc("find_no", "id"));
+        return items.selectList(new QueryWrapper<BomItem>()
+                .eq("bom_id", id)
+                .orderByAsc("find_no", "id"));
     }
 
     @Transactional
-    public BomHeader create(BomHeader h) {
-        h.setId(null);
-        if (h.getBomNo() == null) h.setBomNo(codes.next("BOM").replace("-", ""));
-        if (h.getVersion() == null) h.setVersion(1);
-        if (h.getStatus() == null) h.setStatus("DRAFT");
-        headers.insert(h);
-        return h;
+    public BomHeader create(BomHeader header) {
+        header.setId(null);
+        if (header.getBomNo() == null) {
+            header.setBomNo(codes.next("BOM").replace("-", ""));
+        }
+        if (header.getVersion() == null) {
+            header.setVersion(1);
+        }
+        if (header.getStatus() == null) {
+            header.setStatus("DRAFT");
+        }
+        headers.insert(header);
+        return header;
     }
 
-    public BomItem add(Long id, BomItem x) {
-        BomHeader h = load(id);
-        if (!"DRAFT".equals(h.getStatus())) throw new BizException("RELEASED BOM 行不可修改");
-        if (x.getParentPartId() == null) x.setParentPartId(h.getRootPartId());
-        if (Objects.equals(x.getParentPartId(), x.getChildPartId())) throw new BizException("不允许成环");
-        if (parts.selectById(x.getChildPartId()) == null) throw new BizException("子零件不存在");
-        if (wouldCycle(id, x.getParentPartId(), x.getChildPartId())) throw new BizException("不允许成环");
-        x.setId(null);
-        x.setBomId(id);
-        if (x.getFindNo() == null) x.setFindNo(itemList(id).stream().map(BomItem::getFindNo).filter(Objects::nonNull).max(Integer::compareTo).orElse(0) + 10);
-        if (x.getQty() == null) x.setQty(BigDecimal.ONE);
-        items.insert(x);
-        return x;
+    public BomItem add(Long id, BomItem item) {
+        BomHeader header = load(id);
+        if (!"DRAFT".equals(header.getStatus())) {
+            throw new BizException("RELEASED BOM 行不可修改");
+        }
+        if (item.getParentPartId() == null) {
+            item.setParentPartId(header.getRootPartId());
+        }
+        if (Objects.equals(item.getParentPartId(), item.getChildPartId())) {
+            throw new BizException("不允许成环");
+        }
+        if (parts.selectById(item.getChildPartId()) == null) {
+            throw new BizException("子零件不存在");
+        }
+        if (wouldCycle(id, item.getParentPartId(), item.getChildPartId())) {
+            throw new BizException("不允许成环");
+        }
+        item.setId(null);
+        item.setBomId(id);
+        if (item.getFindNo() == null) {
+            item.setFindNo(itemList(id).stream()
+                    .map(BomItem::getFindNo)
+                    .filter(Objects::nonNull)
+                    .max(Integer::compareTo)
+                    .orElse(0) + 10);
+        }
+        if (item.getQty() == null) {
+            item.setQty(BigDecimal.ONE);
+        }
+        items.insert(item);
+        return item;
     }
+
     private boolean wouldCycle(Long id, Long parent, Long child) {
         Map<Long, List<Long>> childrenByParent = new HashMap<>();
         for (BomItem item : itemList(id)) {
@@ -70,54 +116,62 @@ public class BomService {
                     .add(item.getChildPartId());
         }
         Set<Long> seen = new HashSet<>();
-        Deque<Long> q = new ArrayDeque<>();
-        q.add(child);
-        while (!q.isEmpty()) {
-            Long p = q.remove();
-            if (!seen.add(p)) continue;
-            if (Objects.equals(p, parent)) return true;
-            for (Long childId : childrenByParent.getOrDefault(p, Collections.emptyList())) {
-                q.add(childId);
+        Deque<Long> queue = new ArrayDeque<>();
+        queue.add(child);
+        while (!queue.isEmpty()) {
+            Long current = queue.remove();
+            if (!seen.add(current)) {
+                continue;
             }
+            if (Objects.equals(current, parent)) {
+                return true;
+            }
+            queue.addAll(childrenByParent.getOrDefault(current, Collections.emptyList()));
         }
         return false;
     }
-    public BomItem updateItem(Long id, Long itemId, BomItem x) {
-        BomHeader h = load(id);
-        if (!"DRAFT".equals(h.getStatus())) throw new BizException("BOM不可修改");
-        x.setId(itemId);
-        x.setBomId(id);
-        items.updateById(x);
+
+    public BomItem updateItem(Long id, Long itemId, BomItem item) {
+        BomHeader header = load(id);
+        if (!"DRAFT".equals(header.getStatus())) {
+            throw new BizException("BOM不可修改");
+        }
+        item.setId(itemId);
+        item.setBomId(id);
+        items.updateById(item);
         return items.selectById(itemId);
     }
 
+    @Transactional
     public BomHeader transition(Long id, String from, String to) {
-        BomHeader h = load(id);
-        if (!from.equals(h.getStatus())) throw new BizException("当前状态不允许操作");
+        BomHeader header = load(id);
+        if (!from.equals(header.getStatus())) {
+            throw new BizException("当前状态不允许操作");
+        }
         if ("RELEASED".equals(to)) {
-            List<String> bad = new ArrayList<>();
-            for (BomItem i : itemList(id)) {
-                Part p = parts.selectById(i.getChildPartId());
-                if (p == null) {
-                    bad.add(String.valueOf(i.getChildPartId()));
-                } else if (!"RELEASED".equals(p.getLifecycle())) {
-                    bad.add(p.getPartNo());
+            List<String> invalid = new ArrayList<>();
+            for (BomItem item : itemList(id)) {
+                Part part = parts.selectById(item.getChildPartId());
+                if (part == null) {
+                    invalid.add(String.valueOf(item.getChildPartId()));
+                } else if (!"RELEASED".equals(part.getLifecycle())) {
+                    invalid.add(part.getPartNo());
                 }
             }
-            if (!bad.isEmpty()) {
-                throw new BizException("存在未发布子零件: " + String.join(", ", bad));
+            if (!invalid.isEmpty()) {
+                throw new BizException("存在未发布子零件: " + String.join(", ", invalid));
             }
-            h.setReleasedBy(CurrentUser.get() == null
+            header.setReleasedBy(CurrentUser.get() == null
                     ? null
                     : CurrentUser.get().getUsername());
-            h.setReleasedAt(LocalDateTime.now());
+            header.setReleasedAt(LocalDateTime.now());
         }
-        h.setStatus(to);
-        headers.updateById(h);
+        header.setStatus(to);
+        headers.updateById(header);
         if ("RELEASED".equals(to)) {
-            obsoletePreviousVersions(h);
+            obsoletePreviousVersions(header);
         }
-        return h;
+        return header;
     }
 
     private void obsoletePreviousVersions(BomHeader released) {
@@ -140,56 +194,285 @@ public class BomService {
     @Transactional
     public BomHeader newVersion(Long id) {
         BomHeader old = load(id);
-        BomHeader h = new BomHeader();
-        BeanUtils.copyProperties(old, h);
-        h.setId(null);
-        h.setBomNo(codes.next("BOM").replace("-", ""));
-        h.setVersion(old.getVersion() + 1);
-        h.setStatus("DRAFT");
-        headers.insert(h);
-        for (BomItem i : itemList(id)) {
-            BomItem n = new BomItem();
-            BeanUtils.copyProperties(i, n);
-            n.setId(null);
-            n.setBomId(h.getId());
-            items.insert(n);
+        BomHeader header = new BomHeader();
+        BeanUtils.copyProperties(old, header);
+        header.setId(null);
+        header.setBomNo(codes.next("BOM").replace("-", ""));
+        header.setVersion(old.getVersion() + 1);
+        header.setStatus("DRAFT");
+        headers.insert(header);
+        for (BomItem oldItem : itemList(id)) {
+            BomItem item = new BomItem();
+            BeanUtils.copyProperties(oldItem, item);
+            item.setId(null);
+            item.setBomId(header.getId());
+            items.insert(item);
         }
-        return h;
+        return header;
     }
-    public List<Map<String, Object>> explode(Long id, Integer maxLevel, Map<String, String> selections) {
-        BomHeader h = load(id);
-        List<Map<String, Object>> out = new ArrayList<>();
-        walk(id, h.getRootPartId(), BigDecimal.ONE, 0, "", out, maxLevel == null ? 99 : maxLevel, selections);
-        return out;
+
+    public List<Map<String, Object>> explode(
+            Long id,
+            Integer maxLevel,
+            Map<String, String> selections) {
+        BomContext context = context(id);
+        List<Map<String, Object>> output = new ArrayList<>();
+        walk(context, context.header.getRootPartId(), BigDecimal.ONE, 0, "",
+                output, maxLevel == null ? 99 : maxLevel, selections);
+        return output;
     }
-    private void walk(Long id, Long parent, BigDecimal factor, int level, String path, List<Map<String, Object>> out, int max, Map<String, String> s) {
-        if (level >= max) return;
-        for (BomItem i : itemList(id)) {
-            if (!Objects.equals(i.getParentPartId(), parent) || !UsageConditionEvaluator.evaluate(i.getUsageCondition(), s)) continue;
-            Part p = parts.selectById(i.getChildPartId());
-            Map<String, Object> m = new LinkedHashMap<>();
-            m.put("level", level + 1);
-            m.put("path", (path.isEmpty() ? "" : path + "/") + i.getChildPartId());
-            m.put("partId", i.getChildPartId());
-            m.put("partNo", p == null ? null : p.getPartNo());
-            m.put("partName", p == null ? null : p.getPartName());
-            m.put("qty", i.getQty());
-            m.put("extendedQty", factor.multiply(i.getQty()));
-            m.put("item", i);
-            out.add(m);
-            walk(id, i.getChildPartId(), factor.multiply(i.getQty()), level + 1, (path.isEmpty() ? "" : path + "/") + i.getChildPartId(), out, max, s);
-        }
-    }
-    public List<Map<String, Object>> summarized(Long id, Map<String, String> s) {
-        Map<Long, Map<String, Object>> m = new LinkedHashMap<>();
-        for (Map<String, Object> x : explode(id, null, s)) {
-            Long p = (Long) x.get("partId");
-            if (!m.containsKey(p)) m.put(p, x);
-            else {
-                BigDecimal q = (BigDecimal) m.get(p).get("extendedQty");
-                m.get(p).put("extendedQty", q.add((BigDecimal) x.get("extendedQty")));
+
+    public List<Map<String, Object>> tree(Long id, Map<String, String> selections) {
+        BomContext context = context(id);
+        List<Map<String, Object>> output = new ArrayList<>();
+        for (BomItem item : context.childrenByParent
+                .getOrDefault(context.header.getRootPartId(), Collections.emptyList())) {
+            Map<String, Object> node = node(context, item, BigDecimal.ONE, 1, "",
+                    selections);
+            if (node != null) {
+                output.add(node);
             }
         }
-        return new ArrayList<>(m.values());
+        return output;
+    }
+
+    private void walk(
+            BomContext context,
+            Long parent,
+            BigDecimal factor,
+            int level,
+            String path,
+            List<Map<String, Object>> output,
+            int maxLevel,
+            Map<String, String> selections) {
+        if (level >= maxLevel) {
+            return;
+        }
+        for (BomItem item : context.childrenByParent
+                .getOrDefault(parent, Collections.emptyList())) {
+            Map<String, Object> value = node(context, item, factor, level + 1,
+                    path, selections);
+            if (value == null) {
+                continue;
+            }
+            output.add(value);
+            walk(context, item.getChildPartId(), factor.multiply(item.getQty()),
+                    level + 1, String.valueOf(value.get("path")), output,
+                    maxLevel, selections);
+        }
+    }
+
+    private Map<String, Object> node(
+            BomContext context,
+            BomItem item,
+            BigDecimal factor,
+            int level,
+            String path,
+            Map<String, String> selections) {
+        if (selections != null
+                && !UsageConditionEvaluator.evaluate(item.getUsageCondition(),
+                selections)) {
+            return null;
+        }
+        Part part = context.partsById.get(item.getChildPartId());
+        String itemPath = path.isEmpty()
+                ? String.valueOf(item.getChildPartId())
+                : path + "/" + item.getChildPartId();
+        Map<String, Object> value = new LinkedHashMap<>();
+        value.put("level", level);
+        value.put("path", itemPath);
+        value.put("itemId", item.getId());
+        value.put("parentPartId", item.getParentPartId());
+        value.put("partId", item.getChildPartId());
+        value.put("partNo", part == null ? null : part.getPartNo());
+        value.put("partName", part == null ? null : part.getPartName());
+        value.put("revision", part == null ? null : part.getRevision());
+        value.put("partType", part == null ? null : part.getPartType());
+        value.put("qty", item.getQty());
+        value.put("uom", item.getUom());
+        value.put("extendedQty", factor.multiply(item.getQty()));
+        value.put("usageType", item.getUsageType());
+        value.put("usageCondition", item.getUsageCondition());
+        value.put("stationCode", item.getStationCode());
+        value.put("alternateGroup", item.getAlternateGroup());
+        value.put("effectiveFrom", item.getEffectiveFrom());
+        value.put("effectiveTo", item.getEffectiveTo());
+        value.put("findNo", item.getFindNo());
+        List<Map<String, Object>> children = new ArrayList<>();
+        for (BomItem child : context.childrenByParent
+                .getOrDefault(item.getChildPartId(), Collections.emptyList())) {
+            Map<String, Object> childNode = node(context, child,
+                    factor.multiply(item.getQty()), level + 1, itemPath,
+                    selections);
+            if (childNode != null) {
+                children.add(childNode);
+            }
+        }
+        value.put("children", children);
+        return value;
+    }
+
+    public List<Map<String, Object>> summarized(
+            Long id,
+            Map<String, String> selections) {
+        Map<Long, Map<String, Object>> summarized = new LinkedHashMap<>();
+        for (Map<String, Object> value : explode(id, null, selections)) {
+            Long partId = (Long) value.get("partId");
+            if (!summarized.containsKey(partId)) {
+                summarized.put(partId, value);
+            } else {
+                BigDecimal quantity = (BigDecimal) summarized.get(partId)
+                        .get("extendedQty");
+                summarized.get(partId).put("extendedQty",
+                        quantity.add((BigDecimal) value.get("extendedQty")));
+            }
+        }
+        return new ArrayList<>(summarized.values());
+    }
+
+    public Map<String, List<Map<String, Object>>> byStation(Long id) {
+        BomHeader header = load(id);
+        if (!"MBOM".equals(header.getBomType())) {
+            throw new BizException("仅 MBOM 支持按工位查看");
+        }
+        Map<String, String> stationNames = stations.selectList(new QueryWrapper<WorkStation>()
+                        .eq("plant_id", header.getPlantId()))
+                .stream()
+                .collect(Collectors.toMap(WorkStation::getStationCode,
+                        WorkStation::getStationName, (left, right) -> left));
+        Map<String, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
+        BomContext context = context(id);
+        for (BomItem item : context.items) {
+            String stationCode = item.getStationCode() == null
+                    ? "UNASSIGNED"
+                    : item.getStationCode();
+            Map<String, Object> row = node(context, item, BigDecimal.ONE, 1, "",
+                    null);
+            grouped.computeIfAbsent(stationCode, key -> new ArrayList<>()).add(row);
+        }
+        Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
+        for (Map.Entry<String, List<Map<String, Object>>> entry : grouped.entrySet()) {
+            String key = entry.getKey() + " - "
+                    + stationNames.getOrDefault(entry.getKey(), "未分配工位");
+            result.put(key, entry.getValue());
+        }
+        return result;
+    }
+
+    @Transactional
+    public int importCsv(Long id, MultipartFile file) {
+        BomHeader header = load(id);
+        if (!"DRAFT".equals(header.getStatus())) {
+            throw new BizException("仅 DRAFT BOM 可导入");
+        }
+        try {
+            List<String[]> rows = Csv.read(file.getInputStream());
+            int count = 0;
+            for (int rowIndex = 1; rowIndex < rows.size(); rowIndex++) {
+                String[] row = rows.get(rowIndex);
+                if (row.length < 7) {
+                    continue;
+                }
+                BomItem item = new BomItem();
+                item.setParentPartId(findPartId(row[0]));
+                item.setChildPartId(findPartId(row[1]));
+                item.setFindNo(parseInteger(row[2]));
+                item.setQty(new BigDecimal(row[3]));
+                item.setUom(row[4]);
+                item.setUsageCondition(emptyToNull(row[5]));
+                item.setStationCode(emptyToNull(row[6]));
+                add(id, item);
+                count++;
+            }
+            return count;
+        } catch (IOException | NumberFormatException exception) {
+            throw new BizException("BOM CSV 导入失败: " + exception.getMessage());
+        }
+    }
+
+    public ResponseEntity<byte[]> exportCsv(Long id) {
+        List<BomItem> values = itemList(id);
+        Set<Long> partIds = values.stream()
+                .flatMap(item -> java.util.stream.Stream.of(
+                        item.getParentPartId(), item.getChildPartId()))
+                .collect(Collectors.toSet());
+        Map<Long, Part> partMap = parts.selectBatchIds(partIds).stream()
+                .collect(Collectors.toMap(Part::getId, part -> part));
+        return Csv.download(
+                "bom-items.csv",
+                new String[]{"parentPartNo", "childPartNo", "findNo", "qty",
+                        "uom", "usageCondition", "stationCode"},
+                values,
+                item -> new Object[]{
+                        partMap.get(item.getParentPartId()) == null
+                                ? item.getParentPartId()
+                                : partMap.get(item.getParentPartId()).getPartNo(),
+                        partMap.get(item.getChildPartId()) == null
+                                ? item.getChildPartId()
+                                : partMap.get(item.getChildPartId()).getPartNo(),
+                        item.getFindNo(),
+                        item.getQty(),
+                        item.getUom(),
+                        item.getUsageCondition(),
+                        item.getStationCode()
+                });
+    }
+
+    private Long findPartId(String partNo) {
+        Part part = parts.selectOne(new QueryWrapper<Part>().eq("part_no", partNo));
+        if (part == null) {
+            throw new BizException("零件不存在: " + partNo);
+        }
+        return part.getId();
+    }
+
+    private Integer parseInteger(String value) {
+        return value == null || value.isEmpty()
+                ? null
+                : Integer.valueOf(value);
+    }
+
+    private String emptyToNull(String value) {
+        return value == null || value.isEmpty() ? null : value;
+    }
+
+    private BomContext context(Long id) {
+        BomHeader header = load(id);
+        List<BomItem> bomItems = itemList(id);
+        Set<Long> partIds = new HashSet<>();
+        partIds.add(header.getRootPartId());
+        for (BomItem item : bomItems) {
+            partIds.add(item.getParentPartId());
+            partIds.add(item.getChildPartId());
+        }
+        Map<Long, Part> partMap = parts.selectBatchIds(partIds).stream()
+                .collect(Collectors.toMap(Part::getId, part -> part));
+        Map<Long, List<BomItem>> children = new LinkedHashMap<>();
+        for (BomItem item : bomItems) {
+            Long parentPartId = item.getParentPartId() == null
+                    ? header.getRootPartId()
+                    : item.getParentPartId();
+            children.computeIfAbsent(parentPartId, key -> new ArrayList<>())
+                    .add(item);
+        }
+        return new BomContext(header, bomItems, partMap, children);
+    }
+
+    private static final class BomContext {
+        private final BomHeader header;
+        private final List<BomItem> items;
+        private final Map<Long, Part> partsById;
+        private final Map<Long, List<BomItem>> childrenByParent;
+
+        private BomContext(
+                BomHeader header,
+                List<BomItem> items,
+                Map<Long, Part> partsById,
+                Map<Long, List<BomItem>> childrenByParent) {
+            this.header = header;
+            this.items = items;
+            this.partsById = partsById;
+            this.childrenByParent = childrenByParent;
+        }
     }
 }

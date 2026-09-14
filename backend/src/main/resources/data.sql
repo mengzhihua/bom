@@ -64,41 +64,178 @@ MERGE INTO bom_feature_option KEY(feature_id,option_code) VALUES (3,'BLK','黑�
 MERGE INTO bom_feature_option KEY(feature_id,option_code) VALUES (3,'RED','红色');
 MERGE INTO bom_feature_option KEY(feature_id,option_code) VALUES (4,'2WD','两驱');
 MERGE INTO bom_feature_option KEY(feature_id,option_code) VALUES (4,'4WD','四驱');
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-CHASSIS','A','底盘总成',NULL,NULL,'ASSEMBLY','CHASSIS','EA',NULL,NULL,'MAKE',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-ELEC','A','电器总成',NULL,NULL,'ASSEMBLY','ELECTRICAL','EA',NULL,NULL,'MAKE',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-INTERIOR','A','内饰总成',NULL,NULL,'ASSEMBLY','INTERIOR','EA',NULL,NULL,'MAKE',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-BUMPER-F','A','前保险杠',NULL,NULL,'PART','EXTERIOR','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-BUMPER-R','A','后保险杠',NULL,NULL,'PART','EXTERIOR','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-DOOR-FR','A','右前车门',NULL,NULL,'PART','BODY','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-DOOR-RL','A','左后车门',NULL,NULL,'PART','BODY','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-DOOR-RR','A','右后车门',NULL,NULL,'PART','BODY','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-SEAT-F','A','前排座椅',NULL,NULL,'PART','INTERIOR','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-SEAT-R','A','后排座椅',NULL,NULL,'PART','INTERIOR','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-BATTERY','A','动力电池',NULL,NULL,'PART','ELECTRICAL','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,TRUE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-ALTERNATOR','A','发电机',NULL,NULL,'PART','ELECTRICAL','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-ECU','A','发动机控制器',NULL,NULL,'SOFTWARE','ELECTRICAL','EA',NULL,NULL,'MAKE',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,TRUE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-TIRE-FL','A','左前轮胎',NULL,NULL,'PART','CHASSIS','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-TIRE-FR','A','右前轮胎',NULL,NULL,'PART','CHASSIS','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-TIRE-RL','A','左后轮胎',NULL,NULL,'PART','CHASSIS','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-TIRE-RR','A','右后轮胎',NULL,NULL,'PART','CHASSIS','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-WHEEL','A','铝合金轮毂',NULL,NULL,'PART','CHASSIS','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-BRAKE','A','制动器总成',NULL,NULL,'SUB_ASSEMBLY','CHASSIS','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,TRUE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-STEERING','A','转向系统',NULL,NULL,'SUB_ASSEMBLY','CHASSIS','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,TRUE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-AIRBAG','A','安全气囊',NULL,NULL,'STANDARD','INTERIOR','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,TRUE,TRUE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-GLASS-F','A','前挡风玻璃',NULL,NULL,'PART','EXTERIOR','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,TRUE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-GLASS-R','A','后挡风玻璃',NULL,NULL,'PART','EXTERIOR','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,TRUE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-MIRROR','A','外后视镜',NULL,NULL,'PART','EXTERIOR','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-LAMP-F','A','前大灯',NULL,NULL,'PART','EXTERIOR','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,TRUE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-LAMP-R','A','后尾灯',NULL,NULL,'PART','EXTERIOR','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,TRUE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-DASH','A','仪表板',NULL,NULL,'PART','INTERIOR','EA',NULL,NULL,'MAKE',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-CARPET','A','地毯',NULL,NULL,'RAW','INTERIOR','EA',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
-MERGE INTO bom_part KEY(part_no,revision) VALUES ('P-PAINT','A','车身涂料',NULL,NULL,'RAW','EXTERIOR','KG',NULL,NULL,'BUY',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'RELEASED',NULL,FALSE,FALSE,FALSE,NULL);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-CHASSIS','A','底盘总成','ASSEMBLY','CHASSIS','EA','MAKE','RELEASED',FALSE,FALSE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-ELEC','A','电器总成','ASSEMBLY','ELECTRICAL','EA','MAKE','RELEASED',FALSE,FALSE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-INTERIOR','A','内饰总成','ASSEMBLY','INTERIOR','EA','MAKE','RELEASED',FALSE,FALSE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-BUMPER-F','A','前保险杠','PART','EXTERIOR','EA','BUY','RELEASED',FALSE,FALSE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-BUMPER-R','A','后保险杠','PART','EXTERIOR','EA','BUY','RELEASED',FALSE,FALSE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-DOOR-FR','A','右前车门','PART','BODY','EA','BUY','RELEASED',FALSE,FALSE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-DOOR-RL','A','左后车门','PART','BODY','EA','BUY','RELEASED',FALSE,FALSE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-DOOR-RR','A','右后车门','PART','BODY','EA','BUY','RELEASED',FALSE,FALSE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-SEAT-F','A','前排座椅','PART','INTERIOR','EA','BUY','RELEASED',FALSE,FALSE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-SEAT-R','A','后排座椅','PART','INTERIOR','EA','BUY','RELEASED',FALSE,FALSE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-BATTERY','A','动力电池','PART','ELECTRICAL','EA','BUY','RELEASED',FALSE,TRUE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-ALTERNATOR','A','发电机','PART','ELECTRICAL','EA','BUY','RELEASED',FALSE,FALSE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-ECU','A','发动机控制器','SOFTWARE','ELECTRICAL','EA','MAKE','RELEASED',FALSE,FALSE,TRUE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-TIRE-FL','A','左前轮胎','PART','CHASSIS','EA','BUY','RELEASED',FALSE,FALSE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-TIRE-FR','A','右前轮胎','PART','CHASSIS','EA','BUY','RELEASED',FALSE,FALSE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-TIRE-RL','A','左后轮胎','PART','CHASSIS','EA','BUY','RELEASED',FALSE,FALSE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-TIRE-RR','A','右后轮胎','PART','CHASSIS','EA','BUY','RELEASED',FALSE,FALSE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-WHEEL','A','铝合金轮毂','PART','CHASSIS','EA','BUY','RELEASED',FALSE,FALSE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-BRAKE','A','制动器总成','SUB_ASSEMBLY','CHASSIS','EA','BUY','RELEASED',FALSE,TRUE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-STEERING','A','转向系统','SUB_ASSEMBLY','CHASSIS','EA','BUY','RELEASED',FALSE,TRUE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-AIRBAG','A','安全气囊','STANDARD','INTERIOR','EA','BUY','RELEASED',FALSE,TRUE,TRUE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-GLASS-F','A','前挡风玻璃','PART','EXTERIOR','EA','BUY','RELEASED',FALSE,TRUE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-GLASS-R','A','后挡风玻璃','PART','EXTERIOR','EA','BUY','RELEASED',FALSE,TRUE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-MIRROR','A','外后视镜','PART','EXTERIOR','EA','BUY','RELEASED',FALSE,FALSE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-LAMP-F','A','前大灯','PART','EXTERIOR','EA','BUY','RELEASED',FALSE,FALSE,TRUE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-LAMP-R','A','后尾灯','PART','EXTERIOR','EA','BUY','RELEASED',FALSE,FALSE,TRUE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-DASH','A','仪表板','PART','INTERIOR','EA','MAKE','RELEASED',FALSE,FALSE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-CARPET','A','地毯','RAW','INTERIOR','EA','BUY','RELEASED',FALSE,FALSE,FALSE);
+MERGE INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom,safety_part,regulatory_part) KEY(part_no,revision) VALUES ('P-PAINT','A','车身涂料','RAW','EXTERIOR','KG','BUY','RELEASED',FALSE,FALSE,FALSE);
 MERGE INTO bom_work_station KEY(station_code) VALUES (1,(SELECT id FROM bom_plant WHERE plant_code='P001'),'FA','FA010','车身上线',10,60);
 MERGE INTO bom_work_station KEY(station_code) VALUES (2,(SELECT id FROM bom_plant WHERE plant_code='P001'),'FA','FA020','底盘装配',20,60);
 MERGE INTO bom_work_station KEY(station_code) VALUES (3,(SELECT id FROM bom_plant WHERE plant_code='P001'),'FA','FA030','动力总成',30,60);
 MERGE INTO bom_work_station KEY(station_code) VALUES (4,(SELECT id FROM bom_plant WHERE plant_code='P001'),'FA','FA040','内饰装配',40,60);
 MERGE INTO bom_work_station KEY(station_code) VALUES (5,(SELECT id FROM bom_plant WHERE plant_code='P001'),'FA','FA050','电器检测',50,60);
 MERGE INTO bom_work_station KEY(station_code) VALUES (6,(SELECT id FROM bom_plant WHERE plant_code='P001'),'FA','FA060','终检下线',60,60);
+INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle,is_phantom)
+SELECT 'P-HARNESS-PACK','A','线束包','SUB_ASSEMBLY','ELECTRICAL','EA','MAKE','RELEASED',TRUE
+WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-HARNESS-PACK' AND revision='A');
+INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle)
+SELECT 'P-DOOR-GLASS','A','车门玻璃','PART','BODY','EA','BUY','RELEASED'
+WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-DOOR-GLASS' AND revision='A');
+INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle)
+SELECT 'P-DOOR-LOCK','A','车门锁','PART','BODY','EA','BUY','RELEASED'
+WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-DOOR-LOCK' AND revision='A');
+INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle)
+SELECT 'P-WIRE-CLIP','A','线束固定螺栓','STANDARD','ELECTRICAL','EA','BUY','RELEASED'
+WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-WIRE-CLIP' AND revision='A');
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,h.root_part_id,p.id,30,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-CHASSIS'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,h.root_part_id,p.id,40,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-ELEC'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,h.root_part_id,p.id,50,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-INTERIOR'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-BODY'),p.id,10,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-BUMPER-F'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-BODY'),p.id,20,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-BUMPER-R'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-BODY'),p.id,30,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-DOOR-FL'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-BODY'),p.id,40,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-DOOR-FR'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-BODY'),p.id,50,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-DOOR-RL'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-BODY'),p.id,60,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-DOOR-RR'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-DOOR-FL'),p.id,10,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-DOOR-GLASS'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND parent_part_id=(SELECT id FROM bom_part WHERE part_no='P-DOOR-FL') AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-DOOR-FL'),p.id,20,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-DOOR-LOCK'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND parent_part_id=(SELECT id FROM bom_part WHERE part_no='P-DOOR-FL') AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-DOOR-GLASS'),p.id,10,4,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-BOLT'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND parent_part_id=(SELECT id FROM bom_part WHERE part_no='P-DOOR-GLASS') AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-CHASSIS'),p.id,10,4,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-WHEEL'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-CHASSIS'),p.id,20,4,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-TIRE-FL'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-CHASSIS'),p.id,30,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-BRAKE'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-POWER'),p.id,30,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-FUEL-TANK'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-POWER'),p.id,40,1,'EA','OPTIONAL','TRANS=MT'
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-GEAR-MT'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-POWER'),p.id,50,1,'EA','OPTIONAL','TRANS=AT'
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-GEAR-AT'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-ELEC'),p.id,10,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-BATTERY'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-ELEC'),p.id,20,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-ECU'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-ELEC'),p.id,30,1,'EA','PHANTOM',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-HARNESS-PACK'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-INTERIOR'),p.id,10,2,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-SEAT-F'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-INTERIOR'),p.id,20,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-SEAT-R'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-INTERIOR'),p.id,30,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-DASH'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-HARNESS-PACK'),p.id,10,1,'EA','NORMAL',NULL
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM' AND p.part_no='P-WIRE'
+  AND NOT EXISTS(SELECT 1 FROM bom_item WHERE bom_id=h.id AND child_part_id=p.id);
 MERGE INTO bom_ecr KEY(ecr_no) VALUES (1,'ECR-DEMO-001','发动机供应商替换','SUPPLY','HIGH',(SELECT id FROM bom_vehicle_model WHERE model_code='M01'),'[]','演示工程变更','APPROVED','admin','admin',CURRENT_TIMESTAMP,NULL);
 MERGE INTO bom_ecn KEY(ecn_no) VALUES (1,'ECN-DEMO-001',1,'自动变速箱替换',(SELECT id FROM bom_header WHERE bom_no='BOM-M01-EBOM'),'REPLACE','IMMEDIATE',NULL,NULL,'DRAFT',NULL);
 INSERT INTO bom_part(part_no,revision,part_name,part_type,category,uom,make_buy,lifecycle) SELECT 'P-CHASSIS','A','底盘总成','ASSEMBLY','CHASSIS','EA','MAKE','RELEASED' WHERE NOT EXISTS(SELECT 1 FROM bom_part WHERE part_no='P-CHASSIS' AND revision='A');
@@ -176,3 +313,141 @@ INSERT INTO bom_work_station(plant_id,line_code,station_code,station_name,seq,ta
 INSERT INTO bom_work_station(plant_id,line_code,station_code,station_name,seq,takt) SELECT p.id,'FA','FA040','内饰装配',40,60 FROM bom_plant p WHERE p.plant_code='P001' AND NOT EXISTS(SELECT 1 FROM bom_work_station WHERE station_code='FA040');
 INSERT INTO bom_work_station(plant_id,line_code,station_code,station_name,seq,takt) SELECT p.id,'FA','FA050','电器检测',50,60 FROM bom_plant p WHERE p.plant_code='P001' AND NOT EXISTS(SELECT 1 FROM bom_work_station WHERE station_code='FA050');
 INSERT INTO bom_work_station(plant_id,line_code,station_code,station_name,seq,takt) SELECT p.id,'FA','FA060','终检下线',60,60 FROM bom_plant p WHERE p.plant_code='P001' AND NOT EXISTS(SELECT 1 FROM bom_work_station WHERE station_code='FA060');
+
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type)
+SELECT h.id,h.root_part_id,p.id,10,2,'EA','NORMAL'
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM-V2' AND p.part_no='P-BODY'
+  AND NOT EXISTS(
+      SELECT 1
+      FROM bom_item
+      WHERE bom_id=h.id
+        AND parent_part_id=h.root_part_id
+        AND child_part_id=p.id
+  );
+
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type)
+SELECT h.id,h.root_part_id,p.id,20,1,'EA','NORMAL'
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM-V2' AND p.part_no='P-MIRROR'
+  AND NOT EXISTS(
+      SELECT 1
+      FROM bom_item
+      WHERE bom_id=h.id
+        AND parent_part_id=h.root_part_id
+        AND child_part_id=p.id
+  );
+
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,usage_condition)
+SELECT h.id,h.root_part_id,p.id,30,1,'EA','OPTIONAL','ENGINE=2.0T'
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-EBOM-V2' AND p.part_no='P-ENGINE20'
+  AND NOT EXISTS(
+      SELECT 1
+      FROM bom_item
+      WHERE bom_id=h.id
+        AND child_part_id=p.id
+  );
+
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,station_code)
+SELECT h.id,h.root_part_id,p.id,10,1,'EA','NORMAL','FA010'
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-MBOM' AND p.part_no='P-BODY'
+  AND NOT EXISTS(
+      SELECT 1
+      FROM bom_item
+      WHERE bom_id=h.id
+        AND child_part_id=p.id
+  );
+
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,station_code)
+SELECT h.id,h.root_part_id,p.id,20,1,'EA','NORMAL','FA020'
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-MBOM' AND p.part_no='P-CHASSIS'
+  AND NOT EXISTS(
+      SELECT 1
+      FROM bom_item
+      WHERE bom_id=h.id
+        AND child_part_id=p.id
+  );
+
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,station_code)
+SELECT h.id,h.root_part_id,p.id,30,1,'EA','NORMAL','FA030'
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-MBOM' AND p.part_no='P-POWER'
+  AND NOT EXISTS(
+      SELECT 1
+      FROM bom_item
+      WHERE bom_id=h.id
+        AND child_part_id=p.id
+  );
+
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,station_code)
+SELECT h.id,h.root_part_id,p.id,40,1,'EA','NORMAL','FA050'
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-MBOM' AND p.part_no='P-ELEC'
+  AND NOT EXISTS(
+      SELECT 1
+      FROM bom_item
+      WHERE bom_id=h.id
+        AND child_part_id=p.id
+  );
+
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,station_code)
+SELECT h.id,h.root_part_id,p.id,50,1,'EA','NORMAL','FA040'
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-MBOM' AND p.part_no='P-INTERIOR'
+  AND NOT EXISTS(
+      SELECT 1
+      FROM bom_item
+      WHERE bom_id=h.id
+        AND child_part_id=p.id
+  );
+
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,station_code)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-BODY'),p.id,10,1,'EA','NORMAL','FA010'
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-MBOM' AND p.part_no='P-BUMPER-F'
+  AND NOT EXISTS(
+      SELECT 1
+      FROM bom_item
+      WHERE bom_id=h.id
+        AND parent_part_id=(SELECT id FROM bom_part WHERE part_no='P-BODY')
+        AND child_part_id=p.id
+  );
+
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,station_code)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-BODY'),p.id,20,1,'EA','NORMAL','FA010'
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-MBOM' AND p.part_no='P-BUMPER-R'
+  AND NOT EXISTS(
+      SELECT 1
+      FROM bom_item
+      WHERE bom_id=h.id
+        AND parent_part_id=(SELECT id FROM bom_part WHERE part_no='P-BODY')
+        AND child_part_id=p.id
+  );
+
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,station_code)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-POWER'),p.id,10,1,'EA','OPTIONAL','FA030'
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-MBOM' AND p.part_no='P-ENGINE15'
+  AND NOT EXISTS(
+      SELECT 1
+      FROM bom_item
+      WHERE bom_id=h.id
+        AND parent_part_id=(SELECT id FROM bom_part WHERE part_no='P-POWER')
+        AND child_part_id=p.id
+  );
+
+INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,station_code)
+SELECT h.id,(SELECT id FROM bom_part WHERE part_no='P-POWER'),p.id,20,1,'EA','OPTIONAL','FA030'
+FROM bom_header h,bom_part p
+WHERE h.bom_no='BOM-M01-MBOM' AND p.part_no='P-GEAR-AT'
+  AND NOT EXISTS(
+      SELECT 1
+      FROM bom_item
+      WHERE bom_id=h.id
+        AND parent_part_id=(SELECT id FROM bom_part WHERE part_no='P-POWER')
+        AND child_part_id=p.id
+  );

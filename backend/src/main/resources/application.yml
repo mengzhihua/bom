@@ -35,7 +35,7 @@ bom:
     token-ttl: ${BOM_TOKEN_TTL:12h}
     admin-password: ${BOM_ADMIN_PASSWORD:admin123}
   cors:
-    origins: ${BOM_CORS_ORIGINS:http://localhost:5174}
+    origins: ${BOM_CORS_ORIGINS:http://localhost:5175}
   sap:
     mode: ${BOM_SAP_MODE:mock}
     base-url: ${BOM_SAP_BASE_URL:}
