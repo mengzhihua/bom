@@ -28,19 +28,44 @@ public final class AccessPolicy {
         if (path.startsWith("/api/auth/")) {
             return true;
         }
+        if (isReadOnlyBomOperation(path)) {
+            return true;
+        }
         if (User.ENGINEER.equals(role)) {
             return engineerWrite(path);
         }
         if (User.PLANNER.equals(role)) {
             return path.startsWith("/api/boms")
                     || path.startsWith("/api/process")
-                    || path.startsWith("/api/master")
+                    || plannerMasterWrite(path)
                     || path.startsWith("/api/ecns")
                     || path.startsWith("/api/integration");
         }
         return false;
     }
+
+    private static boolean plannerMasterWrite(String path) {
+        return path.startsWith("/api/master/plants")
+                || path.startsWith("/api/master/workstations");
+    }
+
+    private static boolean isReadOnlyBomOperation(String path) {
+        return path.endsWith("/configure")
+                || path.endsWith("/tree")
+                || path.endsWith("/explode")
+                || path.endsWith("/summarized")
+                || path.endsWith("/rollup")
+                || path.endsWith("/by-station")
+                || path.endsWith("/export")
+                || path.equals("/api/boms/compare");
+    }
+
     private static boolean engineerWrite(String path) {
-        return path.startsWith("/api/parts") || path.startsWith("/api/boms") || path.startsWith("/api/ecrs") || path.startsWith("/api/ecns") || path.startsWith("/api/integration");
+        return path.startsWith("/api/parts")
+                || path.startsWith("/api/boms")
+                || path.startsWith("/api/ecrs")
+                || path.startsWith("/api/ecns")
+                || path.startsWith("/api/integration")
+                || path.startsWith("/api/master");
     }
 }

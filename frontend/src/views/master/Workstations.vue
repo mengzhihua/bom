@@ -19,5 +19,6 @@ const columns = [
     :load="master.workstations"
     :create="master.workstation"
     :update="master.updateWorkstation"
+    module="workstations"
   />
 </template>

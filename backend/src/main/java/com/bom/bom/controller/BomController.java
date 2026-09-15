@@ -207,7 +207,6 @@ public class BomController {
     public R<Map<String, Object>> configure(
             @PathVariable Long id,
             @RequestBody Config config) {
-        requireWrite(service.load(id).getBomType());
         Map<String, Object> result = new LinkedHashMap<>();
         List<Map<String, Object>> exploded = service.explode(
                 id,

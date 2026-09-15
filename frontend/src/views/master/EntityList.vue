@@ -1,10 +1,10 @@
 <template>
   <div class="page">
-    <div class="page-title"><h2>{{ title }}</h2><el-button v-if="canWrite('master')" type="primary" @click="open()"><el-icon><Plus /></el-icon>新增</el-button></div>
+    <div class="page-title"><h2>{{ title }}</h2><el-button v-if="canWrite(module)" type="primary" @click="open()"><el-icon><Plus /></el-icon>新增</el-button></div>
     <el-card shadow="never">
       <el-table :data="rows" stripe v-loading="loading">
         <el-table-column v-for="col in columns" :key="col.prop" :prop="col.prop" :label="col.label" min-width="130" />
-        <el-table-column label="操作" width="150" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="open(row)">编辑</el-button></template></el-table-column>
+        <el-table-column v-if="canWrite(module)" label="操作" width="150" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="open(row)">编辑</el-button></template></el-table-column>
       </el-table>
     </el-card>
     <el-dialog v-model="visible" :title="form.id ? '编辑' : '新增'" width="520px">
@@ -24,7 +24,11 @@ const props = defineProps({
   columns: Array,
   load: Function,
   create: Function,
-  update: Function
+  update: Function,
+  module: {
+    type: String,
+    default: 'master'
+  }
 })
 const rows = ref([]); const loading = ref(false); const visible = ref(false); const form = reactive({})
 async function refresh() { loading.value = true; try { rows.value = await props.load() } finally { loading.value = false } }

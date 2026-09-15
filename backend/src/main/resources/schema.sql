@@ -170,7 +170,8 @@ CREATE TABLE IF NOT EXISTS bom_header (
     released_at TIMESTAMP,
     sap_bom_no VARCHAR(64),
     created_at TIMESTAMP,
-    updated_at TIMESTAMP
+    updated_at TIMESTAMP,
+    CONSTRAINT uk_bom_header_no_version UNIQUE(bom_no, version)
 );
 
 CREATE TABLE IF NOT EXISTS bom_item (

@@ -62,10 +62,7 @@ public class WhereUsedController {
                             ? header.getRootPartId()
                             : item.getParentPartId();
                     List<Long> path = new ArrayList<>();
-                    path.add(header.getRootPartId());
-                    if (!java.util.Objects.equals(parentId, header.getRootPartId())) {
-                        path.add(parentId);
-                    }
+                    path.add(parentId);
                     path.add(item.getChildPartId());
                     queue.add(new State(item, header, path, 1));
                 }
@@ -80,6 +77,10 @@ public class WhereUsedController {
                         ? state.header.getRootPartId()
                         : state.item.getParentPartId());
                 Part root = partById.get(state.header.getRootPartId());
+                List<Long> completePath = completePath(
+                        state.path,
+                        state.header.getRootPartId(),
+                        bomItems);
                 Map<String, Object> value = new LinkedHashMap<>();
                 value.put("bomNo", state.header.getBomNo());
                 value.put("bomType", state.header.getBomType());
@@ -90,7 +91,7 @@ public class WhereUsedController {
                 value.put("rootPartNo", root == null ? null : root.getPartNo());
                 value.put("qty", state.item.getQty());
                 value.put("level", state.level);
-                value.put("path", formatPath(state.path, partById));
+                value.put("path", formatPath(completePath, partById));
                 out.add(value);
                 if (!recursive) {
                     continue;
@@ -105,7 +106,8 @@ public class WhereUsedController {
                         Long prefix = parentItem.getParentPartId() == null
                                 ? state.header.getRootPartId()
                                 : parentItem.getParentPartId();
-                        if (path.isEmpty() || !java.util.Objects.equals(path.get(0), prefix)) {
+                        if (path.isEmpty()
+                                || !java.util.Objects.equals(path.get(0), prefix)) {
                             path.add(0, prefix);
                         }
                         queue.add(new State(parentItem, state.header, path,
@@ -115,6 +117,41 @@ public class WhereUsedController {
             }
         }
         return R.ok(out);
+    }
+
+    private List<Long> completePath(
+            List<Long> suffix,
+            Long rootPartId,
+            List<BomItem> bomItems) {
+        List<Long> path = new ArrayList<>(suffix);
+        Set<Long> seen = new HashSet<>();
+        Long current = path.isEmpty() ? null : path.get(0);
+        while (current != null
+                && !java.util.Objects.equals(current, rootPartId)
+                && seen.add(current)) {
+            BomItem parentItem = null;
+            for (BomItem candidate : bomItems) {
+                if (java.util.Objects.equals(candidate.getChildPartId(), current)) {
+                    parentItem = candidate;
+                    break;
+                }
+            }
+            if (parentItem == null) {
+                break;
+            }
+            Long parentId = parentItem.getParentPartId() == null
+                    ? rootPartId
+                    : parentItem.getParentPartId();
+            if (!java.util.Objects.equals(path.get(0), parentId)) {
+                path.add(0, parentId);
+            }
+            current = parentId;
+        }
+        if (!path.isEmpty()
+                && !java.util.Objects.equals(path.get(0), rootPartId)) {
+            path.add(0, rootPartId);
+        }
+        return path;
     }
 
     private String formatPath(List<Long> path, Map<Long, Part> partById) {
