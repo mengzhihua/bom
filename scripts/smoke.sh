@@ -45,7 +45,13 @@ BID=$(jq -r '.data.id' <<<"$BOM")
 step "create EBOM"
 assert_ok <<<"$BOM"
 step "add first BOM level"
-api -X POST "$BASE/api/boms/$BID/items" -H 'Content-Type: application/json' -d "{\"childPartId\":$PID,\"qty\":2,\"uom\":\"EA\",\"usageCondition\":\"TRANS=MT\"}" | assert_ok
+FIRST=$(api -X POST "$BASE/api/boms/$BID/items" -H 'Content-Type: application/json' -d "{\"childPartId\":$PID,\"qty\":2,\"uom\":\"EA\",\"usageCondition\":\"TRANS=MT\"}")
+assert_ok <<<"$FIRST"
+FIRST_ITEM=$(jq -r '.data.id' <<<"$FIRST")
+FIRST_ROW=$(jq -c '.data' <<<"$FIRST")
+api -X PUT "$BASE/api/boms/$BID/items/$FIRST_ITEM" \
+  -H 'Content-Type: application/json' \
+  -d "$(jq '.stationCode = "ST-01"' <<<"$FIRST_ROW")" | assert_ok
 CHILD_PAYLOAD="{\"partNo\":\"$P3\",\"revision\":\"A\",\"partName\":\"Smoke Child\",\"partType\":\"PART\",\"category\":\"BODY\",\"uom\":\"EA\",\"makeBuy\":\"MAKE\",\"lifecycle\":\"RELEASED\"}"
 CHILD=$(api -X POST "$BASE/api/parts" -H 'Content-Type: application/json' -d "$CHILD_PAYLOAD" | jq -r '.data.id')
 step "add second BOM level"
@@ -68,6 +74,21 @@ api -X PUT "$BASE/api/boms/$BID/items/$CLEAR_ITEM" \
   | assert_ok
 api "$BASE/api/boms/$BID/items" | jq -e --argjson itemId "$CLEAR_ITEM" \
   '.data[] | select(.id == $itemId and .usageCondition == null)' >/dev/null
+step "preserve BOM row fields on full edit"
+ROW=$(api "$BASE/api/boms/$BID/items" | jq -c --argjson itemId "$CLEAR_ITEM" \
+  '.data[] | select(.id == $itemId)')
+api -X PUT "$BASE/api/boms/$BID/items/$CLEAR_ITEM" \
+  -H 'Content-Type: application/json' \
+  -d "$(jq '.operationSeq = 20 | .remark = "retained"' <<<"$ROW")" \
+  | assert_ok
+ROW=$(api "$BASE/api/boms/$BID/items" | jq -c --argjson itemId "$CLEAR_ITEM" \
+  '.data[] | select(.id == $itemId)')
+api -X PUT "$BASE/api/boms/$BID/items/$CLEAR_ITEM" \
+  -H 'Content-Type: application/json' \
+  -d "$(jq '.qty = 3' <<<"$ROW")" \
+  | assert_ok
+api "$BASE/api/boms/$BID/items" | jq -e --argjson itemId "$CLEAR_ITEM" \
+  '.data[] | select(.id == $itemId and .qty == 3 and .operationSeq == 20 and .remark == "retained")' >/dev/null
 step "reject BOM cycle"
 set +e
 CY=$(api -X POST "$BASE/api/boms/$BID/items" -H 'Content-Type: application/json' -d "{\"parentPartId\":$CHILD,\"childPartId\":$ROOT,\"qty\":1,\"uom\":\"EA\"}")
@@ -108,6 +129,9 @@ ECNID=$(jq -r '.data.id' <<<"$ECN")
 step "set ECN target BOM"
 api -X PUT "$BASE/api/ecns/$ECNID" -H 'Content-Type: application/json' -d "{\"bomId\":$BID,\"title\":\"Smoke ECN\"}" | assert_ok
 step "add ECN replace item"
+step "add ECN MODIFY clear station item"
+ECN_MODIFY_PAYLOAD="{\"action\":\"MODIFY\",\"parentPartId\":$ROOT,\"oldChildPartId\":$PID,\"oldQty\":2,\"findNo\":10,\"oldUsageCondition\":\"TRANS=MT\",\"clearStationCode\":true}"
+api -X POST "$BASE/api/ecns/$ECNID/items" -H 'Content-Type: application/json' -d "$ECN_MODIFY_PAYLOAD" | assert_ok
 ECN_ITEM_PAYLOAD="{\"action\":\"REPLACE\",\"parentPartId\":$ROOT,\"oldChildPartId\":$PID,\"newChildPartId\":$CHILD,\"oldQty\":1,\"newQty\":1,\"findNo\":10,\"oldUsageCondition\":\"TRANS=MT\"}"
 api -X POST "$BASE/api/ecns/$ECNID/items" -H 'Content-Type: application/json' -d "$ECN_ITEM_PAYLOAD" | assert_ok
 step "submit ECN"
@@ -121,6 +145,8 @@ step "verify implemented BOM version"
 OLD_BOM_NO=$(api "$BASE/api/boms/$BID" | jq -r '.data.bomNo')
 api "$BASE/api/boms/$NEWBOMID" | jq -e --arg bomNo "$OLD_BOM_NO" '.code == 0 and .data.version == 2 and .data.status == "RELEASED" and .data.bomNo == $bomNo' >/dev/null
 api "$BASE/api/boms/$BID" | jq -e '.code == 0 and .data.status == "OBSOLETE"' >/dev/null
+api "$BASE/api/boms/$NEWBOMID/items" | jq -e --argjson childId "$CHILD" \
+  '.data[] | select(.childPartId == $childId and .findNo == 10 and .stationCode == null)' >/dev/null
 step "sync BOM to SAP"
 api -X POST "$BASE/api/boms/$NEWBOMID/sync-sap" | jq -e '.code == 0 and .data.sapBomNo != null' >/dev/null
 NEW_NO=$(api "$BASE/api/boms/$NEWBOMID" | jq -r '.data.bomNo')

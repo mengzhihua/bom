@@ -169,10 +169,12 @@ public class BomService {
             throw new BizException("BOM行不存在");
         }
         if (item.getParentPartId() == null) {
-            item.setParentPartId(header.getRootPartId());
+            item.setParentPartId(existing.getParentPartId());
         }
-        if (item.getChildPartId() == null
-                || parts.selectById(item.getChildPartId()) == null) {
+        if (item.getChildPartId() == null) {
+            item.setChildPartId(existing.getChildPartId());
+        }
+        if (parts.selectById(item.getChildPartId()) == null) {
             throw new BizException("子零件不存在");
         }
         if (Objects.equals(item.getParentPartId(), item.getChildPartId())

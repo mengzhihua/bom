@@ -19,6 +19,8 @@ public class EcnItem extends BaseEntity {
     private String oldUsageCondition;
     private String usageCondition;
     private String stationCode;
+    private Boolean clearUsageCondition;
+    private Boolean clearStationCode;
     private String remark;
     private BigDecimal oldQty;
     private BigDecimal newQty;

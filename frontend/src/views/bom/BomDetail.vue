@@ -471,16 +471,9 @@ function openEdit(node) {
   editingItem.value = node
   parentNode.value = null
   Object.assign(itemForm, {
+    ...node,
     parentPartId: node.parentPartId,
-    childPartId: node.partId,
-    qty: node.qty,
-    uom: node.uom,
-    usageType: node.usageType,
-    usageCondition: node.usageCondition,
-    stationCode: node.stationCode,
-    alternateGroup: node.alternateGroup,
-    positionDesc: node.positionDesc,
-    findNo: node.findNo
+    childPartId: node.partId || node.childPartId
   })
   partOptions.value = [{
     id: node.partId,

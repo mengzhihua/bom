@@ -165,7 +165,30 @@
           <el-input v-model="itemForm.oldUsageCondition" />
         </el-form-item>
         <el-form-item label="新配置条件">
-          <el-input v-model="itemForm.usageCondition" />
+          <el-input
+            v-model="itemForm.usageCondition"
+            :disabled="itemForm.action === 'MODIFY'
+              && itemForm.clearUsageCondition"
+          />
+          <el-checkbox
+            v-if="itemForm.action === 'MODIFY'"
+            v-model="itemForm.clearUsageCondition"
+          >
+            清空
+          </el-checkbox>
+        </el-form-item>
+        <el-form-item label="工位">
+          <el-input
+            v-model="itemForm.stationCode"
+            :disabled="itemForm.action === 'MODIFY'
+              && itemForm.clearStationCode"
+          />
+          <el-checkbox
+            v-if="itemForm.action === 'MODIFY'"
+            v-model="itemForm.clearStationCode"
+          >
+            清空
+          </el-checkbox>
         </el-form-item>
         <el-form-item label="序号">
           <el-input-number v-model="itemForm.findNo" :min="1" />
@@ -213,7 +236,9 @@ const itemForm = reactive({
   findNo: 10,
   oldUsageCondition: '',
   usageCondition: '',
-  stationCode: ''
+  stationCode: '',
+  clearUsageCondition: false,
+  clearStationCode: false
 })
 
 async function load() {
@@ -243,7 +268,9 @@ function openItem() {
     findNo: 10,
     oldUsageCondition: '',
     usageCondition: '',
-    stationCode: ''
+    stationCode: '',
+    clearUsageCondition: false,
+    clearStationCode: false
   })
   itemVisible.value = true
 }
