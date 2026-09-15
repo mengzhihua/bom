@@ -1,6 +1,7 @@
 package com.bom.bom.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.bom.bom.entity.BomHeader;
 import com.bom.bom.entity.BomItem;
 import com.bom.bom.mapper.BomHeaderMapper;
@@ -179,9 +180,28 @@ public class BomService {
                 itemId)) {
             throw new BizException("不允许成环");
         }
-        item.setId(itemId);
-        item.setBomId(id);
-        items.updateById(item);
+        LambdaUpdateWrapper<BomItem> update = new LambdaUpdateWrapper<BomItem>()
+                .eq(BomItem::getId, itemId)
+                .eq(BomItem::getBomId, id)
+                .set(BomItem::getParentPartId, item.getParentPartId())
+                .set(BomItem::getChildPartId, item.getChildPartId())
+                .set(BomItem::getFindNo, item.getFindNo())
+                .set(BomItem::getOperationSeq, item.getOperationSeq())
+                .set(BomItem::getAlternatePriority,
+                        item.getAlternatePriority())
+                .set(BomItem::getUom, item.getUom())
+                .set(BomItem::getUsageType, item.getUsageType())
+                .set(BomItem::getUsageCondition, item.getUsageCondition())
+                .set(BomItem::getStationCode, item.getStationCode())
+                .set(BomItem::getAlternateGroup, item.getAlternateGroup())
+                .set(BomItem::getPositionDesc, item.getPositionDesc())
+                .set(BomItem::getRemark, item.getRemark())
+                .set(BomItem::getEffectiveFrom, item.getEffectiveFrom())
+                .set(BomItem::getEffectiveTo, item.getEffectiveTo());
+        if (item.getQty() != null) {
+            update.set(BomItem::getQty, item.getQty());
+        }
+        items.update(null, update);
         return items.selectById(itemId);
     }
 

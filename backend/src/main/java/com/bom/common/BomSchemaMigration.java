@@ -50,6 +50,12 @@ public class BomSchemaMigration implements CommandLineRunner {
                     "ALTER TABLE bom_ecn_item ADD COLUMN "
                             + "old_usage_condition VARCHAR(512)");
         }
+        jdbcTemplate.update(
+                "UPDATE bom_ecn_item "
+                        + "SET old_usage_condition = usage_condition "
+                        + "WHERE old_usage_condition IS NULL "
+                        + "AND usage_condition IS NOT NULL "
+                        + "AND action IN ('REPLACE', 'REMOVE', 'MODIFY')");
     }
 
     private void dropLegacyBomNoConstraints() {

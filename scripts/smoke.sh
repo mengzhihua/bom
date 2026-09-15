@@ -57,8 +57,17 @@ api -X POST "$BASE/api/boms/$BID/items" -H 'Content-Type: application/json' -d "
 step "where-used shared child paths"
 api "$BASE/api/parts/$CHILD/where-used?recursive=true" | jq -e '.code == 0 and ([.data[].path] | unique | length) >= 2' >/dev/null
 step "add conditional BOM rows"
-api -X POST "$BASE/api/boms/$BID/items" -H 'Content-Type: application/json' -d "{\"parentPartId\":$ROOT,\"childPartId\":$PID,\"qty\":1,\"uom\":\"EA\",\"usageCondition\":\"ENGINE=1.5T\"}" | assert_ok
+CONDITIONAL=$(api -X POST "$BASE/api/boms/$BID/items" -H 'Content-Type: application/json' -d "{\"parentPartId\":$ROOT,\"childPartId\":$PID,\"qty\":1,\"uom\":\"EA\",\"usageCondition\":\"ENGINE=1.5T\"}")
+assert_ok <<<"$CONDITIONAL"
+CLEAR_ITEM=$(jq -r '.data.id' <<<"$CONDITIONAL")
 api -X POST "$BASE/api/boms/$BID/items" -H 'Content-Type: application/json' -d "{\"parentPartId\":$ROOT,\"childPartId\":$PID,\"qty\":2,\"uom\":\"EA\",\"usageCondition\":\"ENGINE=2.0T\"}" | assert_ok
+step "clear BOM item text fields"
+api -X PUT "$BASE/api/boms/$BID/items/$CLEAR_ITEM" \
+  -H 'Content-Type: application/json' \
+  -d "{\"parentPartId\":$ROOT,\"childPartId\":$PID,\"qty\":1,\"uom\":\"EA\",\"usageType\":\"NORMAL\",\"usageCondition\":\"\",\"stationCode\":\"\",\"alternateGroup\":\"\",\"positionDesc\":\"\",\"findNo\":null}" \
+  | assert_ok
+api "$BASE/api/boms/$BID/items" | jq -e --argjson itemId "$CLEAR_ITEM" \
+  '.data[] | select(.id == $itemId and .usageCondition == null)' >/dev/null
 step "reject BOM cycle"
 set +e
 CY=$(api -X POST "$BASE/api/boms/$BID/items" -H 'Content-Type: application/json' -d "{\"parentPartId\":$CHILD,\"childPartId\":$ROOT,\"qty\":1,\"uom\":\"EA\"}")
