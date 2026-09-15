@@ -16,6 +16,7 @@ public class EcnItem extends BaseEntity {
     private Long oldChildPartId;
     private Long newChildPartId;
     private String action;
+    private String oldUsageCondition;
     private String usageCondition;
     private String stationCode;
     private String remark;

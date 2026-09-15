@@ -240,6 +240,7 @@ CREATE TABLE IF NOT EXISTS bom_ecn_item (
     old_qty DECIMAL(18, 4),
     new_qty DECIMAL(18, 4),
     find_no INT,
+    old_usage_condition VARCHAR(512),
     usage_condition VARCHAR(512),
     station_code VARCHAR(32),
     remark VARCHAR(512),

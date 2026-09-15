@@ -48,6 +48,9 @@ public class EcnService {
     public EcnItem addItem(Long id, EcnItem item) {
         item.setId(null);
         item.setEcnId(id);
+        item.setOldUsageCondition(trimToNull(item.getOldUsageCondition()));
+        item.setUsageCondition(trimToNull(item.getUsageCondition()));
+        item.setStationCode(trimToNull(item.getStationCode()));
         ecnItems.insert(item);
         return item;
     }
@@ -145,8 +148,17 @@ public class EcnService {
                 || Objects.equals(item.getFindNo(), change.getFindNo());
         return sameBase
                 && sameFindNo
-                && Objects.equals(item.getUsageCondition(),
-                change.getUsageCondition());
+                && (change.getOldUsageCondition() == null
+                || Objects.equals(item.getUsageCondition(),
+                change.getOldUsageCondition()));
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private Ecn transition(Long id, String from, String to) {

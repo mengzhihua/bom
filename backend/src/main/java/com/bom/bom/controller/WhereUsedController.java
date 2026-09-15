@@ -51,7 +51,7 @@ public class WhereUsedController {
         }
         for (List<BomItem> bomItems : reverse.values()) {
             Queue<State> queue = new ArrayDeque<>();
-            Set<String> visited = new HashSet<>();
+            Set<String> emitted = new HashSet<>();
             for (BomItem item : bomItems) {
                 if (java.util.Objects.equals(item.getChildPartId(), partId)) {
                     BomHeader header = headerById.get(item.getBomId());
@@ -64,94 +64,84 @@ public class WhereUsedController {
                     List<Long> path = new ArrayList<>();
                     path.add(parentId);
                     path.add(item.getChildPartId());
-                    queue.add(new State(item, header, path, 1));
+                    List<BomItem> chain = new ArrayList<>();
+                    chain.add(item);
+                    queue.add(new State(
+                            header,
+                            path,
+                            chain,
+                            new HashSet<>(path)));
                 }
             }
             while (!queue.isEmpty()) {
                 State state = queue.remove();
-                String visitKey = state.header.getId() + ":" + state.item.getId();
-                if (!visited.add(visitKey)) {
-                    continue;
-                }
-                Part parent = partById.get(state.item.getParentPartId() == null
+                BomItem current = state.chain.get(0);
+                Long parentId = current.getParentPartId() == null
                         ? state.header.getRootPartId()
-                        : state.item.getParentPartId());
-                Part root = partById.get(state.header.getRootPartId());
-                List<Long> completePath = completePath(
-                        state.path,
-                        state.header.getRootPartId(),
-                        bomItems);
-                Map<String, Object> value = new LinkedHashMap<>();
-                value.put("bomNo", state.header.getBomNo());
-                value.put("bomType", state.header.getBomType());
-                value.put("parentPartId", state.item.getParentPartId());
-                value.put("parentPartNo", parent == null ? null : parent.getPartNo());
-                value.put("parentPartName", parent == null ? null : parent.getPartName());
-                value.put("rootPartId", state.header.getRootPartId());
-                value.put("rootPartNo", root == null ? null : root.getPartNo());
-                value.put("qty", state.item.getQty());
-                value.put("level", state.level);
-                value.put("path", formatPath(completePath, partById));
-                out.add(value);
-                if (!recursive) {
-                    continue;
-                }
-                Long parentId = state.item.getParentPartId() == null
-                        ? state.header.getRootPartId()
-                        : state.item.getParentPartId();
-                for (BomItem parentItem : reverse.getOrDefault(
-                        state.header.getId(), java.util.Collections.emptyList())) {
-                    if (java.util.Objects.equals(parentItem.getChildPartId(), parentId)) {
-                        List<Long> path = new ArrayList<>(state.path);
-                        Long prefix = parentItem.getParentPartId() == null
-                                ? state.header.getRootPartId()
-                                : parentItem.getParentPartId();
-                        if (path.isEmpty()
-                                || !java.util.Objects.equals(path.get(0), prefix)) {
-                            path.add(0, prefix);
+                        : current.getParentPartId();
+                List<BomItem> parents = new ArrayList<>();
+                if (recursive) {
+                    for (BomItem candidate : bomItems) {
+                        if (java.util.Objects.equals(
+                                candidate.getChildPartId(), parentId)) {
+                            parents.add(candidate);
                         }
-                        queue.add(new State(parentItem, state.header, path,
-                                state.level + 1));
                     }
+                }
+                if (parents.isEmpty()) {
+                    emitChain(out, state, partById, emitted);
+                    continue;
+                }
+                for (BomItem parentItem : parents) {
+                    Long prefix = parentItem.getParentPartId() == null
+                            ? state.header.getRootPartId()
+                            : parentItem.getParentPartId();
+                    if (state.pathIds.contains(prefix)) {
+                        emitChain(out, state, partById, emitted);
+                        continue;
+                    }
+                    List<Long> path = new ArrayList<>(state.path);
+                    path.add(0, prefix);
+                    List<BomItem> chain = new ArrayList<>(state.chain);
+                    chain.add(0, parentItem);
+                    Set<Long> pathIds = new HashSet<>(state.pathIds);
+                    pathIds.add(prefix);
+                    queue.add(new State(state.header, path, chain, pathIds));
                 }
             }
         }
         return R.ok(out);
     }
 
-    private List<Long> completePath(
-            List<Long> suffix,
-            Long rootPartId,
-            List<BomItem> bomItems) {
-        List<Long> path = new ArrayList<>(suffix);
-        Set<Long> seen = new HashSet<>();
-        Long current = path.isEmpty() ? null : path.get(0);
-        while (current != null
-                && !java.util.Objects.equals(current, rootPartId)
-                && seen.add(current)) {
-            BomItem parentItem = null;
-            for (BomItem candidate : bomItems) {
-                if (java.util.Objects.equals(candidate.getChildPartId(), current)) {
-                    parentItem = candidate;
-                    break;
-                }
+    private void emitChain(
+            List<Map<String, Object>> out,
+            State state,
+            Map<Long, Part> partById,
+            Set<String> emitted) {
+        String path = formatPath(state.path, partById);
+        Part root = partById.get(state.header.getRootPartId());
+        for (int index = 0; index < state.chain.size(); index++) {
+            BomItem item = state.chain.get(index);
+            Long parentId = item.getParentPartId() == null
+                    ? state.header.getRootPartId()
+                    : item.getParentPartId();
+            Part parent = partById.get(parentId);
+            Map<String, Object> value = new LinkedHashMap<>();
+            value.put("bomNo", state.header.getBomNo());
+            value.put("bomType", state.header.getBomType());
+            value.put("parentPartId", item.getParentPartId());
+            value.put("parentPartNo", parent == null ? null : parent.getPartNo());
+            value.put("parentPartName", parent == null ? null : parent.getPartName());
+            value.put("rootPartId", state.header.getRootPartId());
+            value.put("rootPartNo", root == null ? null : root.getPartNo());
+            value.put("qty", item.getQty());
+            value.put("level", state.path.size() - 2 - index + 1);
+            value.put("path", path);
+            String key = item.getId() + ":" + path;
+            if (emitted.add(key)) {
+                out.add(value);
             }
-            if (parentItem == null) {
-                break;
-            }
-            Long parentId = parentItem.getParentPartId() == null
-                    ? rootPartId
-                    : parentItem.getParentPartId();
-            if (!java.util.Objects.equals(path.get(0), parentId)) {
-                path.add(0, parentId);
-            }
-            current = parentId;
         }
-        if (!path.isEmpty()
-                && !java.util.Objects.equals(path.get(0), rootPartId)) {
-            path.add(0, rootPartId);
-        }
-        return path;
     }
 
     private String formatPath(List<Long> path, Map<Long, Part> partById) {
@@ -164,20 +154,20 @@ public class WhereUsedController {
     }
 
     private static final class State {
-        private final BomItem item;
         private final BomHeader header;
         private final List<Long> path;
-        private final int level;
+        private final List<BomItem> chain;
+        private final Set<Long> pathIds;
 
         private State(
-                BomItem item,
                 BomHeader header,
                 List<Long> path,
-                int level) {
-            this.item = item;
+                List<BomItem> chain,
+                Set<Long> pathIds) {
             this.header = header;
             this.path = path;
-            this.level = level;
+            this.chain = chain;
+            this.pathIds = pathIds;
         }
     }
 }

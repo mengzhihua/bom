@@ -92,6 +92,7 @@ public class BomController {
             @PathVariable Long id,
             @RequestBody BomItem item) {
         requireWrite(service.load(id).getBomType());
+        normalize(item);
         return R.ok(service.add(id, item));
     }
 
@@ -101,7 +102,26 @@ public class BomController {
             @PathVariable Long itemId,
             @RequestBody BomItem item) {
         requireWrite(service.load(id).getBomType());
+        normalize(item);
         return R.ok(service.updateItem(id, itemId, item));
+    }
+
+    private void normalize(BomItem item) {
+        item.setUsageCondition(trimToNull(item.getUsageCondition()));
+        item.setStationCode(trimToNull(item.getStationCode()));
+        item.setUom(trimToNull(item.getUom()));
+        item.setUsageType(trimToNull(item.getUsageType()));
+        item.setAlternateGroup(trimToNull(item.getAlternateGroup()));
+        item.setPositionDesc(trimToNull(item.getPositionDesc()));
+        item.setRemark(trimToNull(item.getRemark()));
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     @DeleteMapping("/{id}/items/{itemId}")

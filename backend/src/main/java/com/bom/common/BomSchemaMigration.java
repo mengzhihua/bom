@@ -36,6 +36,20 @@ public class BomSchemaMigration implements CommandLineRunner {
     public void run(String... args) {
         dropLegacyBomNoConstraints();
         ensureVersionConstraint();
+        ensureEcnOldUsageCondition();
+    }
+
+    private void ensureEcnOldUsageCondition() {
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM information_schema.columns "
+                        + "WHERE UPPER(table_name)='BOM_ECN_ITEM' "
+                        + "AND UPPER(column_name)='OLD_USAGE_CONDITION'",
+                Integer.class);
+        if (count == null || count == 0) {
+            jdbcTemplate.execute(
+                    "ALTER TABLE bom_ecn_item ADD COLUMN "
+                            + "old_usage_condition VARCHAR(512)");
+        }
     }
 
     private void dropLegacyBomNoConstraints() {
