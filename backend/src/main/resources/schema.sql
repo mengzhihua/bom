@@ -5,6 +5,11 @@ CREATE TABLE IF NOT EXISTS bom_sequence (
     PRIMARY KEY(prefix, day_key)
 );
 
+CREATE TABLE IF NOT EXISTS bom_schema_version (
+    version_key VARCHAR(64) PRIMARY KEY,
+    applied_at TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS bom_user (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(64) UNIQUE NOT NULL,
@@ -243,6 +248,8 @@ CREATE TABLE IF NOT EXISTS bom_ecn_item (
     old_usage_condition VARCHAR(512),
     usage_condition VARCHAR(512),
     station_code VARCHAR(32),
+    clear_usage_condition BOOLEAN DEFAULT FALSE,
+    clear_station_code BOOLEAN DEFAULT FALSE,
     remark VARCHAR(512),
     created_at TIMESTAMP,
     updated_at TIMESTAMP

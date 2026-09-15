@@ -11,6 +11,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BomSchemaMigration implements CommandLineRunner {
 
+    private static final String ECN_BACKFILL_VERSION =
+            "ecn_old_usage_condition_backfill";
+
     private static final String LEGACY_CONSTRAINTS = ""
             + "SELECT tc.constraint_name "
             + "FROM information_schema.table_constraints tc "
@@ -40,6 +43,10 @@ public class BomSchemaMigration implements CommandLineRunner {
     }
 
     private void ensureEcnOldUsageCondition() {
+        jdbcTemplate.execute(
+                "CREATE TABLE IF NOT EXISTS bom_schema_version ("
+                        + "version_key VARCHAR(64) PRIMARY KEY, "
+                        + "applied_at TIMESTAMP)");
         Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM information_schema.columns "
                         + "WHERE UPPER(table_name)='BOM_ECN_ITEM' "
@@ -50,12 +57,39 @@ public class BomSchemaMigration implements CommandLineRunner {
                     "ALTER TABLE bom_ecn_item ADD COLUMN "
                             + "old_usage_condition VARCHAR(512)");
         }
-        jdbcTemplate.update(
-                "UPDATE bom_ecn_item "
-                        + "SET old_usage_condition = usage_condition "
-                        + "WHERE old_usage_condition IS NULL "
-                        + "AND usage_condition IS NOT NULL "
-                        + "AND action IN ('REPLACE', 'REMOVE', 'MODIFY')");
+        ensureEcnItemColumn("clear_usage_condition BOOLEAN DEFAULT FALSE");
+        ensureEcnItemColumn("clear_station_code BOOLEAN DEFAULT FALSE");
+        Integer applied = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM bom_schema_version "
+                        + "WHERE version_key = ?",
+                Integer.class,
+                ECN_BACKFILL_VERSION);
+        if (applied == null || applied == 0) {
+            jdbcTemplate.update(
+                    "UPDATE bom_ecn_item "
+                            + "SET old_usage_condition = usage_condition "
+                            + "WHERE old_usage_condition IS NULL "
+                            + "AND usage_condition IS NOT NULL "
+                            + "AND action IN ('REPLACE', 'REMOVE', 'MODIFY')");
+            jdbcTemplate.update(
+                    "INSERT INTO bom_schema_version(version_key, applied_at) "
+                            + "VALUES (?, CURRENT_TIMESTAMP)",
+                    ECN_BACKFILL_VERSION);
+        }
+    }
+
+    private void ensureEcnItemColumn(String definition) {
+        String column = definition.substring(0, definition.indexOf(' '));
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM information_schema.columns "
+                        + "WHERE UPPER(table_name)='BOM_ECN_ITEM' "
+                        + "AND UPPER(column_name)=UPPER(?)",
+                Integer.class,
+                column);
+        if (count == null || count == 0) {
+            jdbcTemplate.execute(
+                    "ALTER TABLE bom_ecn_item ADD COLUMN " + definition);
+        }
     }
 
     private void dropLegacyBomNoConstraints() {
