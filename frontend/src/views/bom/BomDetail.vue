@@ -352,6 +352,7 @@ const router = useRouter()
 const header = ref({})
 const tab = ref('tree')
 const tree = ref([])
+const bomItems = ref([])
 const explode = ref([])
 const summary = ref([])
 const roll = ref({})
@@ -394,6 +395,10 @@ async function loadHeader() {
 
 async function loadTree() {
   tree.value = await boms.tree(route.params.id)
+}
+
+async function loadItems() {
+  bomItems.value = await boms.items(route.params.id)
 }
 
 async function loadExplode() {
@@ -467,13 +472,31 @@ function openAdd(node = null) {
   itemDialog.value = true
 }
 
-function openEdit(node) {
+async function openEdit(node) {
   editingItem.value = node
   parentNode.value = null
+  let row = bomItems.value.find((item) => item.id === node.itemId)
+  if (!row) {
+    const values = await boms.items(route.params.id)
+    row = values.find((item) => item.id === node.itemId)
+  }
+  const fullRow = { ...(row || {}), ...node }
+  for (const field of [
+    'operationSeq',
+    'alternatePriority',
+    'remark',
+    'positionDesc',
+    'effectiveFrom',
+    'effectiveTo'
+  ]) {
+    if (fullRow[field] === undefined && row) {
+      fullRow[field] = row[field]
+    }
+  }
   Object.assign(itemForm, {
-    ...node,
-    parentPartId: node.parentPartId,
-    childPartId: node.partId || node.childPartId
+    ...fullRow,
+    parentPartId: fullRow.parentPartId,
+    childPartId: fullRow.partId || fullRow.childPartId
   })
   partOptions.value = [{
     id: node.partId,
@@ -496,6 +519,7 @@ async function saveItem() {
   }
   itemDialog.value = false
   ElMessage.success('BOM 行已保存')
+  await loadItems()
   await loadTree()
 }
 
@@ -528,7 +552,7 @@ async function downloadExport() {
 
 onMounted(async () => {
   await loadHeader()
-  await loadTree()
+  await Promise.all([loadTree(), loadItems()])
 })
 </script>
 

@@ -75,20 +75,20 @@ api -X PUT "$BASE/api/boms/$BID/items/$CLEAR_ITEM" \
 api "$BASE/api/boms/$BID/items" | jq -e --argjson itemId "$CLEAR_ITEM" \
   '.data[] | select(.id == $itemId and .usageCondition == null)' >/dev/null
 step "preserve BOM row fields on full edit"
-ROW=$(api "$BASE/api/boms/$BID/items" | jq -c --argjson itemId "$CLEAR_ITEM" \
-  '.data[] | select(.id == $itemId)')
+ROW=$(api "$BASE/api/boms/$BID/tree" | jq -c --argjson itemId "$CLEAR_ITEM" \
+  '.. | objects | select(.itemId == $itemId)')
 api -X PUT "$BASE/api/boms/$BID/items/$CLEAR_ITEM" \
   -H 'Content-Type: application/json' \
-  -d "$(jq '.operationSeq = 20 | .remark = "retained"' <<<"$ROW")" \
+  -d "$(jq '.operationSeq = 20 | .remark = "retained" | .positionDesc = "position-retained"' <<<"$ROW")" \
   | assert_ok
-ROW=$(api "$BASE/api/boms/$BID/items" | jq -c --argjson itemId "$CLEAR_ITEM" \
-  '.data[] | select(.id == $itemId)')
+ROW=$(api "$BASE/api/boms/$BID/tree" | jq -c --argjson itemId "$CLEAR_ITEM" \
+  '.. | objects | select(.itemId == $itemId)')
 api -X PUT "$BASE/api/boms/$BID/items/$CLEAR_ITEM" \
   -H 'Content-Type: application/json' \
   -d "$(jq '.qty = 3' <<<"$ROW")" \
   | assert_ok
 api "$BASE/api/boms/$BID/items" | jq -e --argjson itemId "$CLEAR_ITEM" \
-  '.data[] | select(.id == $itemId and .qty == 3 and .operationSeq == 20 and .remark == "retained")' >/dev/null
+  '.data[] | select(.id == $itemId and .qty == 3 and .operationSeq == 20 and .remark == "retained" and .positionDesc == "position-retained")' >/dev/null
 step "reject BOM cycle"
 set +e
 CY=$(api -X POST "$BASE/api/boms/$BID/items" -H 'Content-Type: application/json' -d "{\"parentPartId\":$CHILD,\"childPartId\":$ROOT,\"qty\":1,\"uom\":\"EA\"}")

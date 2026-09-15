@@ -419,6 +419,10 @@ public class BomService {
         value.put("effectiveFrom", item.getEffectiveFrom());
         value.put("effectiveTo", item.getEffectiveTo());
         value.put("findNo", item.getFindNo());
+        value.put("operationSeq", item.getOperationSeq());
+        value.put("alternatePriority", item.getAlternatePriority());
+        value.put("remark", item.getRemark());
+        value.put("positionDesc", item.getPositionDesc());
         List<Map<String, Object>> children = new ArrayList<>();
         for (BomItem child : context.childrenByParent
                 .getOrDefault(item.getChildPartId(), Collections.emptyList())) {
