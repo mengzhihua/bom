@@ -45,11 +45,17 @@ BID=$(jq -r '.data.id' <<<"$BOM")
 step "create EBOM"
 assert_ok <<<"$BOM"
 step "add first BOM level"
-api -X POST "$BASE/api/boms/$BID/items" -H 'Content-Type: application/json' -d "{\"childPartId\":$PID,\"qty\":2,\"uom\":\"EA\"}" | assert_ok
+api -X POST "$BASE/api/boms/$BID/items" -H 'Content-Type: application/json' -d "{\"childPartId\":$PID,\"qty\":2,\"uom\":\"EA\",\"usageCondition\":\"TRANS=MT\"}" | assert_ok
 CHILD_PAYLOAD="{\"partNo\":\"$P3\",\"revision\":\"A\",\"partName\":\"Smoke Child\",\"partType\":\"PART\",\"category\":\"BODY\",\"uom\":\"EA\",\"makeBuy\":\"MAKE\",\"lifecycle\":\"RELEASED\"}"
 CHILD=$(api -X POST "$BASE/api/parts" -H 'Content-Type: application/json' -d "$CHILD_PAYLOAD" | jq -r '.data.id')
 step "add second BOM level"
 api -X POST "$BASE/api/boms/$BID/items" -H 'Content-Type: application/json' -d "{\"parentPartId\":$PID,\"childPartId\":$CHILD,\"qty\":3,\"uom\":\"EA\"}" | assert_ok
+P4_PAYLOAD="{\"partNo\":\"${P1}-SHARED\",\"revision\":\"A\",\"partName\":\"Shared Parent\",\"partType\":\"ASSEMBLY\",\"category\":\"BODY\",\"uom\":\"EA\",\"makeBuy\":\"MAKE\",\"lifecycle\":\"RELEASED\"}"
+P4=$(api -X POST "$BASE/api/parts" -H 'Content-Type: application/json' -d "$P4_PAYLOAD" | jq -r '.data.id')
+api -X POST "$BASE/api/boms/$BID/items" -H 'Content-Type: application/json' -d "{\"parentPartId\":$ROOT,\"childPartId\":$P4,\"qty\":1,\"uom\":\"EA\"}" | assert_ok
+api -X POST "$BASE/api/boms/$BID/items" -H 'Content-Type: application/json' -d "{\"parentPartId\":$P4,\"childPartId\":$CHILD,\"qty\":1,\"uom\":\"EA\"}" | assert_ok
+step "where-used shared child paths"
+api "$BASE/api/parts/$CHILD/where-used?recursive=true" | jq -e '.code == 0 and ([.data[].path] | unique | length) >= 2' >/dev/null
 step "add conditional BOM rows"
 api -X POST "$BASE/api/boms/$BID/items" -H 'Content-Type: application/json' -d "{\"parentPartId\":$ROOT,\"childPartId\":$PID,\"qty\":1,\"uom\":\"EA\",\"usageCondition\":\"ENGINE=1.5T\"}" | assert_ok
 api -X POST "$BASE/api/boms/$BID/items" -H 'Content-Type: application/json' -d "{\"parentPartId\":$ROOT,\"childPartId\":$PID,\"qty\":2,\"uom\":\"EA\",\"usageCondition\":\"ENGINE=2.0T\"}" | assert_ok
@@ -93,7 +99,7 @@ ECNID=$(jq -r '.data.id' <<<"$ECN")
 step "set ECN target BOM"
 api -X PUT "$BASE/api/ecns/$ECNID" -H 'Content-Type: application/json' -d "{\"bomId\":$BID,\"title\":\"Smoke ECN\"}" | assert_ok
 step "add ECN replace item"
-ECN_ITEM_PAYLOAD="{\"action\":\"REPLACE\",\"parentPartId\":$ROOT,\"oldChildPartId\":$PID,\"newChildPartId\":$CHILD,\"oldQty\":1,\"newQty\":1,\"findNo\":10}"
+ECN_ITEM_PAYLOAD="{\"action\":\"REPLACE\",\"parentPartId\":$ROOT,\"oldChildPartId\":$PID,\"newChildPartId\":$CHILD,\"oldQty\":1,\"newQty\":1,\"findNo\":10,\"oldUsageCondition\":\"TRANS=MT\"}"
 api -X POST "$BASE/api/ecns/$ECNID/items" -H 'Content-Type: application/json' -d "$ECN_ITEM_PAYLOAD" | assert_ok
 step "submit ECN"
 api -X POST "$BASE/api/ecns/$ECNID/submit" | assert_ok

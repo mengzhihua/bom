@@ -133,7 +133,8 @@
         <el-table-column prop="oldQty" label="旧数量" />
         <el-table-column prop="newQty" label="新数量" />
         <el-table-column prop="findNo" label="序号" />
-        <el-table-column prop="usageCondition" label="配置条件" />
+        <el-table-column prop="oldUsageCondition" label="旧配置条件" />
+        <el-table-column prop="usageCondition" label="新配置条件" />
         <el-table-column prop="stationCode" label="工位" />
       </el-table>
     </el-card>
@@ -160,7 +161,10 @@
         <el-form-item label="新数量">
           <el-input-number v-model="itemForm.newQty" :min="0" />
         </el-form-item>
-        <el-form-item label="配置条件">
+        <el-form-item label="旧配置条件">
+          <el-input v-model="itemForm.oldUsageCondition" />
+        </el-form-item>
+        <el-form-item label="新配置条件">
           <el-input v-model="itemForm.usageCondition" />
         </el-form-item>
         <el-form-item label="序号">
@@ -207,6 +211,7 @@ const itemForm = reactive({
   oldQty: null,
   newQty: 1,
   findNo: 10,
+  oldUsageCondition: '',
   usageCondition: '',
   stationCode: ''
 })
@@ -236,6 +241,7 @@ function openItem() {
     oldQty: null,
     newQty: 1,
     findNo: 10,
+    oldUsageCondition: '',
     usageCondition: '',
     stationCode: ''
   })

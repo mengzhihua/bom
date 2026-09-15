@@ -68,5 +68,17 @@ class AccessPolicyTest {
                 User.VIEWER,
                 "POST",
                 "/api/boms/1/release"));
+        assertFalse(AccessPolicy.allows(
+                User.PLANNER,
+                "POST",
+                "/api/master/suppliers/1/export"));
+        assertFalse(AccessPolicy.allows(
+                User.VIEWER,
+                "PUT",
+                "/api/boms/1/configure"));
+        assertFalse(AccessPolicy.allows(
+                User.VIEWER,
+                "DELETE",
+                "/api/boms/1/configure"));
     }
 }
