@@ -1,6 +1,7 @@
 package com.bom.change.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.bom.bom.entity.BomHeader;
 import com.bom.bom.entity.BomItem;
 import com.bom.bom.mapper.BomHeaderMapper;
@@ -131,10 +132,29 @@ public class EcnService {
         } else if ("REMOVE".equals(change.getAction())) {
             bomItems.deleteById(item.getId());
         } else {
-            item.setQty(change.getNewQty());
-            item.setUsageCondition(change.getUsageCondition());
-            item.setStationCode(change.getStationCode());
-            bomItems.updateById(item);
+            LambdaUpdateWrapper<BomItem> update = new LambdaUpdateWrapper<BomItem>()
+                    .eq(BomItem::getId, item.getId());
+            boolean changed = false;
+            if (change.getNewQty() != null) {
+                update.set(BomItem::getQty, change.getNewQty());
+                changed = true;
+            }
+            if (change.getFindNo() != null) {
+                update.set(BomItem::getFindNo, change.getFindNo());
+                changed = true;
+            }
+            if (change.getUsageCondition() != null) {
+                update.set(BomItem::getUsageCondition,
+                        change.getUsageCondition());
+                changed = true;
+            }
+            if (change.getStationCode() != null) {
+                update.set(BomItem::getStationCode, change.getStationCode());
+                changed = true;
+            }
+            if (changed) {
+                bomItems.update(null, update);
+            }
         }
         return 1;
     }
