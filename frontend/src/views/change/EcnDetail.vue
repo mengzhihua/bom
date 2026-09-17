@@ -142,7 +142,10 @@
     <el-dialog v-model="itemVisible" title="添加 ECN 明细" width="620px">
       <el-form :model="itemForm" label-width="110px">
         <el-form-item label="动作">
-          <el-select v-model="itemForm.action">
+          <el-select
+            v-model="itemForm.action"
+            @change="onActionChange"
+          >
             <el-option label="新增" value="ADD" />
             <el-option label="删除" value="REMOVE" />
             <el-option label="修改" value="MODIFY" />
@@ -158,7 +161,7 @@
         <el-form-item label="新子件 ID">
           <el-input v-model="itemForm.newChildPartId" />
         </el-form-item>
-        <el-form-item label="新数量">
+        <el-form-item label="新数量" :required="itemForm.action === 'ADD'">
           <el-input-number v-model="itemForm.newQty" :min="0" />
         </el-form-item>
         <el-form-item label="旧配置条件">
@@ -190,7 +193,11 @@
             清空
           </el-checkbox>
         </el-form-item>
-        <el-form-item label="序号">
+        <el-form-item
+          :label="itemForm.action === 'ADD'
+            ? '序号'
+            : '序号（用于定位，可空）'"
+        >
           <el-input-number v-model="itemForm.findNo" :min="1" />
         </el-form-item>
       </el-form>
@@ -232,8 +239,8 @@ const itemForm = reactive({
   oldChildPartId: null,
   newChildPartId: null,
   oldQty: null,
-  newQty: 1,
-  findNo: 10,
+  newQty: null,
+  findNo: null,
   oldUsageCondition: '',
   usageCondition: '',
   stationCode: '',
@@ -264,8 +271,8 @@ function openItem() {
     oldChildPartId: null,
     newChildPartId: null,
     oldQty: null,
-    newQty: 1,
-    findNo: 10,
+    newQty: null,
+    findNo: null,
     oldUsageCondition: '',
     usageCondition: '',
     stationCode: '',
@@ -273,6 +280,11 @@ function openItem() {
     clearStationCode: false
   })
   itemVisible.value = true
+}
+
+function onActionChange() {
+  itemForm.newQty = null
+  itemForm.findNo = null
 }
 
 async function openEdit() {
@@ -294,7 +306,15 @@ async function saveEdit() {
 }
 
 async function saveItem() {
-  await changes.addEcnItem(route.params.id, itemForm)
+  if (itemForm.action === 'ADD' && itemForm.newQty == null) {
+    ElMessage.error('新增动作必须填写新数量')
+    return
+  }
+  const payload = {
+    ...itemForm,
+    findNo: itemForm.findNo === '' ? null : itemForm.findNo
+  }
+  await changes.addEcnItem(route.params.id, payload)
   itemVisible.value = false
   ElMessage.success('明细已添加')
   await load()

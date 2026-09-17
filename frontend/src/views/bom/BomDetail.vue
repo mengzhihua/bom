@@ -347,6 +347,46 @@ import { boms, master, parts } from '../../api'
 import StatusTag from '../../components/StatusTag.vue'
 import { canWrite } from '../../auth'
 
+const BOM_ITEM_FIELDS = [
+  'parentPartId',
+  'childPartId',
+  'qty',
+  'uom',
+  'usageType',
+  'usageCondition',
+  'stationCode',
+  'alternateGroup',
+  'alternatePriority',
+  'positionDesc',
+  'findNo',
+  'operationSeq',
+  'remark',
+  'effectiveFrom',
+  'effectiveTo'
+]
+
+const emptyItemForm = () => ({
+  parentPartId: null,
+  childPartId: null,
+  qty: null,
+  uom: null,
+  usageType: null,
+  usageCondition: null,
+  stationCode: null,
+  alternateGroup: null,
+  alternatePriority: null,
+  positionDesc: null,
+  findNo: null,
+  operationSeq: null,
+  remark: null,
+  effectiveFrom: null,
+  effectiveTo: null
+})
+
+const pick = (source, fields) => Object.fromEntries(
+  fields.map((field) => [field, source[field]])
+)
+
 const route = useRoute()
 const router = useRouter()
 const header = ref({})
@@ -366,18 +406,7 @@ const editingItem = ref(null)
 const parentNode = ref(null)
 const partOptions = ref([])
 const workstationOptions = ref([])
-const itemForm = reactive({
-  parentPartId: null,
-  childPartId: null,
-  qty: 1,
-  uom: 'EA',
-  usageType: 'NORMAL',
-  usageCondition: '',
-  stationCode: '',
-  alternateGroup: '',
-  positionDesc: '',
-  findNo: null
-})
+const itemForm = reactive(emptyItemForm())
 
 const canWriteRole = computed(() => canWrite(
   header.value.bomType === 'MBOM' ? 'mbom' : 'ebom'
@@ -454,17 +483,11 @@ async function searchParts(keyword) {
 function openAdd(node = null) {
   editingItem.value = null
   parentNode.value = node
-  Object.assign(itemForm, {
+  Object.assign(itemForm, emptyItemForm(), {
     parentPartId: node?.partId || header.value.rootPartId,
-    childPartId: null,
     qty: 1,
     uom: 'EA',
-    usageType: 'NORMAL',
-    usageCondition: '',
-    stationCode: '',
-    alternateGroup: '',
-    positionDesc: '',
-    findNo: null
+    usageType: 'NORMAL'
   })
   if (header.value.bomType === 'MBOM') {
     loadWorkstations()
@@ -493,7 +516,7 @@ async function openEdit(node) {
       fullRow[field] = row[field]
     }
   }
-  Object.assign(itemForm, {
+  Object.assign(itemForm, emptyItemForm(), {
     ...fullRow,
     parentPartId: fullRow.parentPartId,
     childPartId: fullRow.partId || fullRow.childPartId
@@ -507,7 +530,7 @@ async function openEdit(node) {
 }
 
 async function saveItem() {
-  const payload = { ...itemForm }
+  const payload = pick(itemForm, BOM_ITEM_FIELDS)
   if (editingItem.value) {
     await boms.updateItem(
       route.params.id,
