@@ -24,8 +24,10 @@ public class AuthInterceptor implements HandlerInterceptor {
     @Override
 public boolean preHandle(HttpServletRequest req, HttpServletResponse res, Object handler) throws IOException {
         String uri = req.getRequestURI();
-        if ("OPTIONS".equalsIgnoreCase(req.getMethod()) || LOGIN_PATH.equals(uri) || uri.startsWith("/api/integration/wms/")) {
-            // WMS 回调/推送走 X-Api-Key 鉴权（控制器内校验），免登录
+        if ("OPTIONS".equalsIgnoreCase(req.getMethod()) || LOGIN_PATH.equals(uri)
+                || uri.startsWith("/api/integration/wms/")
+                || uri.startsWith("/api/open/")) {
+            // WMS / IR 开放口走 X-Api-Key 鉴权（控制器内校验），免登录
             return true;
         }
         TokenService.Principal principal = tokenService.parse(bearer(req.getHeader("Authorization")));

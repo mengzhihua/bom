@@ -17,7 +17,7 @@ import java.util.*;
 public class OpenBomController {
     private final BomHeaderMapper headers;
     private final BomService service;
-    @Value("${bom.open.api-key:}")
+    @Value("${bom.open.api-key:bom-open-key}")
     private String key;
     @GetMapping("/{bomNo}/explode")
 public R<List<Map<String, Object>>> explode(
