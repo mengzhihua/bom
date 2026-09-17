@@ -139,10 +139,6 @@ public class EcnService {
                 update.set(BomItem::getQty, change.getNewQty());
                 changed = true;
             }
-            if (change.getFindNo() != null) {
-                update.set(BomItem::getFindNo, change.getFindNo());
-                changed = true;
-            }
             if (Boolean.TRUE.equals(change.getClearUsageCondition())) {
                 update.set(BomItem::getUsageCondition, null);
                 changed = true;
