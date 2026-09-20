@@ -153,14 +153,6 @@ jobs:
           find dist -type f \( -name '*.zip' -o -name '*.jar' \) -exec cp {} upload/ \;
           ls -lh upload
           TAG="v$(date -u +%Y%m%d)-${GITHUB_SHA::7}"
-          HEAD_SHA="$(git ls-remote https://github.com/${GITHUB_REPOSITORY}.git refs/heads/main | cut -f1)"
-          if [[ "$HEAD_SHA" == "$GITHUB_SHA" ]]; then
-            echo "latest=true" >> "$GITHUB_OUTPUT"
-            echo "Publishing $GITHUB_SHA as latest because it is still main HEAD."
-          else
-            echo "latest=false" >> "$GITHUB_OUTPUT"
-            echo "Publishing $GITHUB_SHA without latest because main HEAD is $HEAD_SHA."
-          fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "title=BOM 物料清单 $TAG" >> "$GITHUB_OUTPUT"
       - name: Publish GitHub Release
@@ -170,7 +162,7 @@ jobs:
           name: ${{ steps.ver.outputs.title }}
           target_commitish: ${{ github.sha }}
           generate_release_notes: true
-          make_latest: ${{ steps.ver.outputs.latest }}
+          make_latest: false
           files: upload/*
           body: |
             自动发行：默认分支构建完成，便携包冒烟通过。
@@ -183,4 +175,28 @@ jobs:
 
             浏览器 http://127.0.0.1:8088
             提交 `${{ github.sha }}`
-            若本次不是 main 最新提交，则不标记为 latest。
+            latest 标记由 mark-latest 任务按 main 当前 HEAD 统一设置。
+
+  mark-latest:
+    needs: publish
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: release-latest-${{ github.ref }}
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    steps:
+      - name: Mark release for current main HEAD
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          HEAD_SHA="$(git ls-remote https://github.com/${GITHUB_REPOSITORY}.git refs/heads/main | cut -f1)"
+          TAG="$(gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=100" --paginate --jq ".[] | select(.target_commitish==\"${HEAD_SHA}\" and .draft==false) | .tag_name" | head -n1)"
+          if [[ -z "$TAG" ]]; then
+            echo "main HEAD ${HEAD_SHA} has no release yet; its own workflow will mark latest"
+            exit 0
+          fi
+          gh release edit "$TAG" --latest --repo "$GITHUB_REPOSITORY"
+          echo "marked $TAG (${HEAD_SHA}) as latest"
