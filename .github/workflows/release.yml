@@ -153,6 +153,14 @@ jobs:
           find dist -type f \( -name '*.zip' -o -name '*.jar' \) -exec cp {} upload/ \;
           ls -lh upload
           TAG="v$(date -u +%Y%m%d)-${GITHUB_SHA::7}"
+          HEAD_SHA="$(git ls-remote https://github.com/${GITHUB_REPOSITORY}.git refs/heads/main | cut -f1)"
+          if [[ "$HEAD_SHA" == "$GITHUB_SHA" ]]; then
+            echo "latest=true" >> "$GITHUB_OUTPUT"
+            echo "Publishing $GITHUB_SHA as latest because it is still main HEAD."
+          else
+            echo "latest=false" >> "$GITHUB_OUTPUT"
+            echo "Publishing $GITHUB_SHA without latest because main HEAD is $HEAD_SHA."
+          fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "title=BOM 物料清单 $TAG" >> "$GITHUB_OUTPUT"
       - name: Publish GitHub Release
@@ -162,7 +170,7 @@ jobs:
           name: ${{ steps.ver.outputs.title }}
           target_commitish: ${{ github.sha }}
           generate_release_notes: true
-          make_latest: true
+          make_latest: ${{ steps.ver.outputs.latest }}
           files: upload/*
           body: |
             自动发行：默认分支构建完成，便携包冒烟通过。
@@ -175,3 +183,4 @@ jobs:
 
             浏览器 http://127.0.0.1:8088
             提交 `${{ github.sha }}`
+            若本次不是 main 最新提交，则不标记为 latest。
