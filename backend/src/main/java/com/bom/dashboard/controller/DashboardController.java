@@ -1,4 +1,4 @@
-package com.bom.dashboard;
+package com.bom.dashboard.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.bom.bom.entity.BomHeader;
