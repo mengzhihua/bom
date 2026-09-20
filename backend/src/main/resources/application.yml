@@ -4,7 +4,7 @@ spring:
   application:
     name: bom-backend
   datasource:
-    url: jdbc:h2:file:./data/bom;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
+    url: jdbc:h2:file:${BOM_DATA_DIR:${bom.data.dir:./data}}/bom;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
     driver-class-name: org.h2.Driver
     username: sa
     password:
