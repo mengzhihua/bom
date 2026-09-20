@@ -139,16 +139,18 @@ public class EcnService {
                 update.set(BomItem::getQty, change.getNewQty());
                 changed = true;
             }
-            if (change.getFindNo() != null) {
-                update.set(BomItem::getFindNo, change.getFindNo());
+            if (Boolean.TRUE.equals(change.getClearUsageCondition())) {
+                update.set(BomItem::getUsageCondition, null);
                 changed = true;
-            }
-            if (change.getUsageCondition() != null) {
+            } else if (change.getUsageCondition() != null) {
                 update.set(BomItem::getUsageCondition,
                         change.getUsageCondition());
                 changed = true;
             }
-            if (change.getStationCode() != null) {
+            if (Boolean.TRUE.equals(change.getClearStationCode())) {
+                update.set(BomItem::getStationCode, null);
+                changed = true;
+            } else if (change.getStationCode() != null) {
                 update.set(BomItem::getStationCode, change.getStationCode());
                 changed = true;
             }

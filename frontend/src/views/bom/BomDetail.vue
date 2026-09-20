@@ -347,11 +347,52 @@ import { boms, master, parts } from '../../api'
 import StatusTag from '../../components/StatusTag.vue'
 import { canWrite } from '../../auth'
 
+const BOM_ITEM_FIELDS = [
+  'parentPartId',
+  'childPartId',
+  'qty',
+  'uom',
+  'usageType',
+  'usageCondition',
+  'stationCode',
+  'alternateGroup',
+  'alternatePriority',
+  'positionDesc',
+  'findNo',
+  'operationSeq',
+  'remark',
+  'effectiveFrom',
+  'effectiveTo'
+]
+
+const emptyItemForm = () => ({
+  parentPartId: null,
+  childPartId: null,
+  qty: null,
+  uom: null,
+  usageType: null,
+  usageCondition: null,
+  stationCode: null,
+  alternateGroup: null,
+  alternatePriority: null,
+  positionDesc: null,
+  findNo: null,
+  operationSeq: null,
+  remark: null,
+  effectiveFrom: null,
+  effectiveTo: null
+})
+
+const pick = (source, fields) => Object.fromEntries(
+  fields.map((field) => [field, source[field]])
+)
+
 const route = useRoute()
 const router = useRouter()
 const header = ref({})
 const tab = ref('tree')
 const tree = ref([])
+const bomItems = ref([])
 const explode = ref([])
 const summary = ref([])
 const roll = ref({})
@@ -365,18 +406,7 @@ const editingItem = ref(null)
 const parentNode = ref(null)
 const partOptions = ref([])
 const workstationOptions = ref([])
-const itemForm = reactive({
-  parentPartId: null,
-  childPartId: null,
-  qty: 1,
-  uom: 'EA',
-  usageType: 'NORMAL',
-  usageCondition: '',
-  stationCode: '',
-  alternateGroup: '',
-  positionDesc: '',
-  findNo: null
-})
+const itemForm = reactive(emptyItemForm())
 
 const canWriteRole = computed(() => canWrite(
   header.value.bomType === 'MBOM' ? 'mbom' : 'ebom'
@@ -394,6 +424,10 @@ async function loadHeader() {
 
 async function loadTree() {
   tree.value = await boms.tree(route.params.id)
+}
+
+async function loadItems() {
+  bomItems.value = await boms.items(route.params.id)
 }
 
 async function loadExplode() {
@@ -449,17 +483,11 @@ async function searchParts(keyword) {
 function openAdd(node = null) {
   editingItem.value = null
   parentNode.value = node
-  Object.assign(itemForm, {
+  Object.assign(itemForm, emptyItemForm(), {
     parentPartId: node?.partId || header.value.rootPartId,
-    childPartId: null,
     qty: 1,
     uom: 'EA',
-    usageType: 'NORMAL',
-    usageCondition: '',
-    stationCode: '',
-    alternateGroup: '',
-    positionDesc: '',
-    findNo: null
+    usageType: 'NORMAL'
   })
   if (header.value.bomType === 'MBOM') {
     loadWorkstations()
@@ -467,20 +495,31 @@ function openAdd(node = null) {
   itemDialog.value = true
 }
 
-function openEdit(node) {
+async function openEdit(node) {
   editingItem.value = node
   parentNode.value = null
-  Object.assign(itemForm, {
-    parentPartId: node.parentPartId,
-    childPartId: node.partId,
-    qty: node.qty,
-    uom: node.uom,
-    usageType: node.usageType,
-    usageCondition: node.usageCondition,
-    stationCode: node.stationCode,
-    alternateGroup: node.alternateGroup,
-    positionDesc: node.positionDesc,
-    findNo: node.findNo
+  let row = bomItems.value.find((item) => item.id === node.itemId)
+  if (!row) {
+    const values = await boms.items(route.params.id)
+    row = values.find((item) => item.id === node.itemId)
+  }
+  const fullRow = { ...(row || {}), ...node }
+  for (const field of [
+    'operationSeq',
+    'alternatePriority',
+    'remark',
+    'positionDesc',
+    'effectiveFrom',
+    'effectiveTo'
+  ]) {
+    if (fullRow[field] === undefined && row) {
+      fullRow[field] = row[field]
+    }
+  }
+  Object.assign(itemForm, emptyItemForm(), {
+    ...fullRow,
+    parentPartId: fullRow.parentPartId,
+    childPartId: fullRow.partId || fullRow.childPartId
   })
   partOptions.value = [{
     id: node.partId,
@@ -491,7 +530,7 @@ function openEdit(node) {
 }
 
 async function saveItem() {
-  const payload = { ...itemForm }
+  const payload = pick(itemForm, BOM_ITEM_FIELDS)
   if (editingItem.value) {
     await boms.updateItem(
       route.params.id,
@@ -503,6 +542,7 @@ async function saveItem() {
   }
   itemDialog.value = false
   ElMessage.success('BOM 行已保存')
+  await loadItems()
   await loadTree()
 }
 
@@ -535,7 +575,7 @@ async function downloadExport() {
 
 onMounted(async () => {
   await loadHeader()
-  await loadTree()
+  await Promise.all([loadTree(), loadItems()])
 })
 </script>
 

@@ -169,10 +169,12 @@ public class BomService {
             throw new BizException("BOM行不存在");
         }
         if (item.getParentPartId() == null) {
-            item.setParentPartId(header.getRootPartId());
+            item.setParentPartId(existing.getParentPartId());
         }
-        if (item.getChildPartId() == null
-                || parts.selectById(item.getChildPartId()) == null) {
+        if (item.getChildPartId() == null) {
+            item.setChildPartId(existing.getChildPartId());
+        }
+        if (parts.selectById(item.getChildPartId()) == null) {
             throw new BizException("子零件不存在");
         }
         if (Objects.equals(item.getParentPartId(), item.getChildPartId())
@@ -417,6 +419,10 @@ public class BomService {
         value.put("effectiveFrom", item.getEffectiveFrom());
         value.put("effectiveTo", item.getEffectiveTo());
         value.put("findNo", item.getFindNo());
+        value.put("operationSeq", item.getOperationSeq());
+        value.put("alternatePriority", item.getAlternatePriority());
+        value.put("remark", item.getRemark());
+        value.put("positionDesc", item.getPositionDesc());
         List<Map<String, Object>> children = new ArrayList<>();
         for (BomItem child : context.childrenByParent
                 .getOrDefault(item.getChildPartId(), Collections.emptyList())) {
