@@ -55,10 +55,10 @@ ARGS=(
   --main-jar "${ARTIFACT}-${VERSION}.jar"
   --dest "$OUT"
   --java-options "-Dfile.encoding=UTF-8"
-  --java-options "-Duser.dir=\$APPDIR"
+  --java-options "-Dbom.native=true"
   --add-modules ALL-MODULE-PATH
 )
-ARGS+=(--arguments "--server.port=8088")
+ARGS+=(--java-options "-Dserver.port=$PORT")
 
 if [[ "$PLATFORM" == "windows-x64" ]]; then
   ARGS+=(--win-console)
@@ -93,8 +93,11 @@ macOS:
   Apple Silicon（M 系列）用 macos-arm64 包；Intel 用 macos-x64 包。
 
 浏览器打开 http://127.0.0.1:$PORT
+
+数据目录：用户主目录 .bom/data（可用 -Dbom.data.dir 或环境变量 BOM_DATA_DIR 覆盖）
 EOF
 
+rm -f "$DIST/${NAME}-${VERSION}-${PLATFORM}.zip"
 if command -v zip >/dev/null 2>&1; then
   (cd "$DIST" && zip -qr "${NAME}-${VERSION}-${PLATFORM}.zip" "${NAME}-${VERSION}-${PLATFORM}")
 else
