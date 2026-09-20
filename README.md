@@ -269,7 +269,8 @@ cd bom-1.0.0
 
 - `bom-1.0.0-linux-x64.zip` → `bin/bom`
 - `bom-1.0.0-windows-x64.zip` → 双击 `bom.exe`
-- `bom-1.0.0-macos-x64.zip` → 双击 `bom.app`
+- `bom-1.0.0-macos-arm64.zip` → Apple Silicon（M 系列），双击 `bom.app`
+- `bom-1.0.0-macos-x64.zip` → Intel Mac，双击 `bom.app`
 
 浏览器访问 `http://127.0.0.1:8088`。默认账号 `admin / admin123`。
 
