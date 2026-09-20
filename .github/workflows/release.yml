@@ -182,7 +182,7 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     concurrency:
-      group: release-latest-${{ github.ref }}
+      group: release-latest
       cancel-in-progress: false
     permissions:
       contents: write
