@@ -6,6 +6,7 @@ import com.bom.bom.mapper.BomHeaderMapper;
 import com.bom.bom.service.BomService;
 import com.bom.change.entity.Ecn;
 import com.bom.change.mapper.EcnMapper;
+import com.bom.change.service.EcnService;
 import com.bom.common.BizException;
 import com.bom.common.R;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class OpenIrController {
     private final BomHeaderMapper headers;
     private final BomService bomService;
     private final EcnMapper ecns;
+    private final EcnService ecnService;
 
     @Value("${bom.open.api-key:bom-open-key}")
     private String apiKey;
@@ -71,6 +73,23 @@ public class OpenIrController {
                 throw new BizException("BOM 不存在: " + targetKey);
             }
             return R.ok(bomService.explode(header.getId(), null, null));
+        }
+        if ("BOM_IMPLEMENT_ECN".equals(type) || "BOM_SUBMIT_ECN".equals(type)
+                || "BOM_APPROVE_ECN".equals(type)) {
+            Ecn ecn = ecns.selectOne(new QueryWrapper<Ecn>()
+                    .eq("ecn_no", targetKey)
+                    .orderByDesc("id")
+                    .last("LIMIT 1"));
+            if (ecn == null) {
+                throw new BizException("ECN 不存在: " + targetKey);
+            }
+            if ("BOM_SUBMIT_ECN".equals(type)) {
+                return R.ok(ecnService.submit(ecn.getId()));
+            }
+            if ("BOM_APPROVE_ECN".equals(type)) {
+                return R.ok(ecnService.approve(ecn.getId()));
+            }
+            return R.ok(ecnService.implement(ecn.getId()));
         }
         throw new BizException("不支持的 IR 指令: " + type);
     }
