@@ -43,6 +43,8 @@ public class OpenIrControllerTest {
             }
         }
         assertNotNull(ecn, "应包含演示 ECN");
+        org.junit.jupiter.api.Assertions.assertEquals("P001", ecn.path("plantCode").asText(),
+                "ECN 快照应带出关联 BOM 工厂");
 
         if ("DRAFT".equals(ecn.path("status").asText())) {
             mockMvc.perform(post("/api/open/ir/actions")
@@ -67,10 +69,19 @@ public class OpenIrControllerTest {
         }
 
         if (!"IMPLEMENTED".equals(ecn.path("status").asText())) {
+            String impl = "{\"type\":\"BOM_IMPLEMENT_ECN\",\"targetKey\":\"ECN-DEMO-001\","
+                    + "\"idempotencyKey\":\"BOM-IMPL-1\"}";
             mockMvc.perform(post("/api/open/ir/actions")
                             .header("X-Api-Key", "bom-open-key")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"type\":\"BOM_IMPLEMENT_ECN\",\"targetKey\":\"ECN-DEMO-001\"}"))
+                            .content(impl))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(0))
+                    .andExpect(jsonPath("$.data.status").value("IMPLEMENTED"));
+            mockMvc.perform(post("/api/open/ir/actions")
+                            .header("X-Api-Key", "bom-open-key")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(impl))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.code").value(0))
                     .andExpect(jsonPath("$.data.status").value("IMPLEMENTED"));
