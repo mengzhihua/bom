@@ -394,6 +394,13 @@ WHERE e.ecn_no='ECN-DEMO-001'
         AND old_child_part_id=(SELECT id FROM bom_part WHERE part_no='P-GEAR-MT')
         AND new_child_part_id=(SELECT id FROM bom_part WHERE part_no='P-GEAR-AT')
   );
+INSERT INTO bom_ecn(ecn_no,ecr_id,title,bom_id,change_type,effective_type,status)
+SELECT 'ECN-IR-SUBMITTED',e.id,'控制塔待批准工程变更',
+       (SELECT id FROM bom_header WHERE bom_no='BOM-M01-EBOM' AND version=1),
+       'REPLACE','IMMEDIATE','SUBMITTED'
+FROM bom_ecr e
+WHERE e.ecr_no='ECR-DEMO-001'
+  AND NOT EXISTS(SELECT 1 FROM bom_ecn WHERE ecn_no='ECN-IR-SUBMITTED');
 INSERT INTO bom_header(bom_no,bom_type,root_part_id,vehicle_model_id,plant_id,version,status,description,source_bom_id)
 SELECT 'BOM-M01-MBOM','MBOM',(SELECT id FROM bom_part WHERE part_no='V-M01'),
        (SELECT id FROM bom_vehicle_model WHERE model_code='M01'),
