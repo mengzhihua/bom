@@ -36,6 +36,7 @@ public class OpenIrControllerTest {
                 .andReturn().getResponse().getContentAsString();
         JsonNode ecn = null;
         JsonNode submitted = null;
+        JsonNode approved = null;
         for (JsonNode row : objectMapper.readTree(snapshots).get("data").get("snapshots")) {
             if ("ECN".equals(row.path("dataType").asText())
                     && "ECN-DEMO-001".equals(row.path("bizKey").asText())) {
@@ -44,12 +45,17 @@ public class OpenIrControllerTest {
             if ("ECN-IR-SUBMITTED".equals(row.path("bizKey").asText())) {
                 submitted = row;
             }
+            if ("ECN-IR-APPROVED".equals(row.path("bizKey").asText())) {
+                approved = row;
+            }
         }
         assertNotNull(ecn, "应包含演示 ECN");
         org.junit.jupiter.api.Assertions.assertEquals("P001", ecn.path("plantCode").asText(),
                 "ECN 快照应带出关联 BOM 工厂");
         assertNotNull(submitted, "应包含待批准 ECN");
         assertEquals("SUBMITTED", submitted.path("status").asText());
+        assertNotNull(approved, "应包含待实施 ECN");
+        assertEquals("APPROVED", approved.path("status").asText());
 
         if ("DRAFT".equals(ecn.path("status").asText())) {
             mockMvc.perform(post("/api/open/ir/actions")

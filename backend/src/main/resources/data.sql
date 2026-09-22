@@ -407,6 +407,13 @@ SELECT 'BOM-M01-MBOM','MBOM',(SELECT id FROM bom_part WHERE part_no='V-M01'),
        (SELECT id FROM bom_plant WHERE plant_code='P001'),1,'RELEASED',
        'M01示范制造BOM',(SELECT id FROM bom_header WHERE bom_no='BOM-M01-EBOM' AND version=1)
 WHERE NOT EXISTS(SELECT 1 FROM bom_header WHERE bom_no='BOM-M01-MBOM');
+INSERT INTO bom_ecn(ecn_no,ecr_id,title,bom_id,change_type,effective_type,status)
+SELECT 'ECN-IR-APPROVED',e.id,'控制塔待实施工程变更',
+       (SELECT id FROM bom_header WHERE bom_no='BOM-M01-MBOM' AND version=1),
+       'REPLACE','IMMEDIATE','APPROVED'
+FROM bom_ecr e
+WHERE e.ecr_no='ECR-DEMO-001'
+  AND NOT EXISTS(SELECT 1 FROM bom_ecn WHERE ecn_no='ECN-IR-APPROVED');
 INSERT INTO bom_item(bom_id,parent_part_id,child_part_id,find_no,qty,uom,usage_type,station_code)
 SELECT h.id,h.root_part_id,p.id,10,1,'EA','NORMAL','FA010'
 FROM bom_header h,bom_part p
