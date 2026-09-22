@@ -110,5 +110,21 @@ public class OpenIrControllerTest {
         }
         assertNotNull(implemented);
         assertEquals("IMPLEMENTED", implemented.path("status").asText());
+
+        String dedicated = "{\"ecnNo\":\"ECN-IR-APPROVED\",\"idempotencyKey\":\"BOM-IMPL-DEDICATED-1\"}";
+        mockMvc.perform(post("/api/open/ir/implement-ecn")
+                        .header("X-Api-Key", "bom-open-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(dedicated))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.status").value("IMPLEMENTED"));
+        mockMvc.perform(post("/api/open/ir/implement-ecn")
+                        .header("X-Api-Key", "bom-open-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(dedicated))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.status").value("IMPLEMENTED"));
     }
 }

@@ -125,6 +125,57 @@ public class OpenIrController {
         }));
     }
 
+    @PostMapping("/explode")
+    public R<Object> explode(
+            @RequestHeader(value = "X-Api-Key", required = false) String key,
+            @RequestBody Map<String, Object> body) {
+        return typedAction(key, body, "BOM_EXPLODE", "bomNo");
+    }
+
+    @PostMapping("/submit-ecn")
+    public R<Object> submitEcn(
+            @RequestHeader(value = "X-Api-Key", required = false) String key,
+            @RequestBody Map<String, Object> body) {
+        return typedAction(key, body, "BOM_SUBMIT_ECN", "ecnNo");
+    }
+
+    @PostMapping("/approve-ecn")
+    public R<Object> approveEcn(
+            @RequestHeader(value = "X-Api-Key", required = false) String key,
+            @RequestBody Map<String, Object> body) {
+        return typedAction(key, body, "BOM_APPROVE_ECN", "ecnNo");
+    }
+
+    @PostMapping("/implement-ecn")
+    public R<Object> implementEcn(
+            @RequestHeader(value = "X-Api-Key", required = false) String key,
+            @RequestBody Map<String, Object> body) {
+        return typedAction(key, body, "BOM_IMPLEMENT_ECN", "ecnNo");
+    }
+
+    private R<Object> typedAction(
+            String key, Map<String, Object> body, String type, String... altKeys) {
+        if (body == null) {
+            body = new LinkedHashMap<String, Object>();
+        }
+        body.put("type", type);
+        if (blank(body.get("targetKey"))) {
+            for (String altKey : altKeys) {
+                Object value = body.get(altKey);
+                if (!blank(value)) {
+                    body.put("targetKey", value);
+                    break;
+                }
+            }
+        }
+        return actions(key, body);
+    }
+
+    private static boolean blank(Object value) {
+        return value == null || String.valueOf(value).trim().isEmpty()
+                || "null".equals(String.valueOf(value));
+    }
+
     private Object executeOnce(String cacheKey, Supplier<Object> work) {
         if (cacheKey == null) {
             return work.get();
