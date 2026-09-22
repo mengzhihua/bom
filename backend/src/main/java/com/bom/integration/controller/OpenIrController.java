@@ -9,6 +9,8 @@ import com.bom.change.mapper.EcnMapper;
 import com.bom.change.service.EcnService;
 import com.bom.common.BizException;
 import com.bom.common.R;
+import com.bom.master.entity.Plant;
+import com.bom.master.mapper.PlantMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,9 +22,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /** IR 控制塔：BOM / ECN 快照与 BOM 展开。 */
 @RestController
@@ -33,6 +38,8 @@ public class OpenIrController {
     private final BomService bomService;
     private final EcnMapper ecns;
     private final EcnService ecnService;
+    private final PlantMapper plants;
+    private final ConcurrentHashMap<String, Object> actionCache = new ConcurrentHashMap<String, Object>();
 
     @Value("${bom.open.api-key:bom-open-key}")
     private String apiKey;
@@ -41,15 +48,37 @@ public class OpenIrController {
     public R<Map<String, Object>> snapshots(
             @RequestHeader(value = "X-Api-Key", required = false) String key) {
         checkKey(key);
+        Map<Long, String> plantById = new HashMap<Long, String>();
+        for (Plant plant : plants.selectList(null)) {
+            if (plant.getId() != null) {
+                plantById.put(plant.getId(), plant.getPlantCode());
+            }
+        }
+        Map<Long, BomHeader> headerById = new LinkedHashMap<Long, BomHeader>();
         List<Map<String, Object>> rows = new ArrayList<>();
         for (BomHeader header : headers.selectList(new QueryWrapper<BomHeader>().orderByDesc("id"))) {
+            headerById.put(header.getId(), header);
             rows.add(row("BOM", header.getBomNo(), header.getStatus(),
                     header.getRootPartNo(), BigDecimal.valueOf(header.getVersion() == null ? 0 : header.getVersion()),
-                    null, header.getPlantCode(), header.getDescription()));
+                    null, plantById.get(header.getPlantId()), header.getDescription()));
         }
         for (Ecn ecn : ecns.selectList(null)) {
-            rows.add(row("ECN", ecn.getEcnNo(), ecn.getStatus(), null,
-                    BigDecimal.ONE, null, null, ecn.getTitle()));
+            BomHeader header = ecn.getBomId() == null ? null : headerById.get(ecn.getBomId());
+            if (header == null && ecn.getBomId() != null) {
+                header = headers.selectById(ecn.getBomId());
+            }
+            String plant = header == null ? null : plantById.get(header.getPlantId());
+            if (plant == null && header != null) {
+                for (BomHeader other : headerById.values()) {
+                    if (header.getId().equals(other.getSourceBomId()) && other.getPlantId() != null) {
+                        plant = plantById.get(other.getPlantId());
+                        break;
+                    }
+                }
+            }
+            rows.add(row("ECN", ecn.getEcnNo(), ecn.getStatus(),
+                    header == null ? null : header.getBomNo(),
+                    BigDecimal.ONE, null, plant, ecn.getTitle()));
         }
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("system", "BOM");
@@ -64,34 +93,66 @@ public class OpenIrController {
         checkKey(key);
         String type = String.valueOf(body.getOrDefault("type", ""));
         String targetKey = String.valueOf(body.getOrDefault("targetKey", ""));
-        if ("BOM_EXPLODE".equals(type)) {
-            BomHeader header = headers.selectOne(new QueryWrapper<BomHeader>()
-                    .eq("bom_no", targetKey)
-                    .orderByDesc("version")
-                    .last("LIMIT 1"));
-            if (header == null) {
-                throw new BizException("BOM 不存在: " + targetKey);
+        return R.ok(executeOnce(cacheKey(type, targetKey, body.get("idempotencyKey")), () -> {
+            if ("BOM_EXPLODE".equals(type)) {
+                BomHeader header = headers.selectOne(new QueryWrapper<BomHeader>()
+                        .eq("bom_no", targetKey)
+                        .orderByDesc("version")
+                        .last("LIMIT 1"));
+                if (header == null) {
+                    throw new BizException("BOM 不存在: " + targetKey);
+                }
+                return bomService.explode(header.getId(), null, null);
             }
-            return R.ok(bomService.explode(header.getId(), null, null));
+            if ("BOM_IMPLEMENT_ECN".equals(type) || "BOM_SUBMIT_ECN".equals(type)
+                    || "BOM_APPROVE_ECN".equals(type)) {
+                Ecn ecn = ecns.selectOne(new QueryWrapper<Ecn>()
+                        .eq("ecn_no", targetKey)
+                        .orderByDesc("id")
+                        .last("LIMIT 1"));
+                if (ecn == null) {
+                    throw new BizException("ECN 不存在: " + targetKey);
+                }
+                if ("BOM_SUBMIT_ECN".equals(type)) {
+                    return ecnService.submit(ecn.getId());
+                }
+                if ("BOM_APPROVE_ECN".equals(type)) {
+                    return ecnService.approve(ecn.getId());
+                }
+                return ecnService.implement(ecn.getId());
+            }
+            throw new BizException("不支持的 IR 指令: " + type);
+        }));
+    }
+
+    private Object executeOnce(String cacheKey, Supplier<Object> work) {
+        if (cacheKey == null) {
+            return work.get();
         }
-        if ("BOM_IMPLEMENT_ECN".equals(type) || "BOM_SUBMIT_ECN".equals(type)
-                || "BOM_APPROVE_ECN".equals(type)) {
-            Ecn ecn = ecns.selectOne(new QueryWrapper<Ecn>()
-                    .eq("ecn_no", targetKey)
-                    .orderByDesc("id")
-                    .last("LIMIT 1"));
-            if (ecn == null) {
-                throw new BizException("ECN 不存在: " + targetKey);
-            }
-            if ("BOM_SUBMIT_ECN".equals(type)) {
-                return R.ok(ecnService.submit(ecn.getId()));
-            }
-            if ("BOM_APPROVE_ECN".equals(type)) {
-                return R.ok(ecnService.approve(ecn.getId()));
-            }
-            return R.ok(ecnService.implement(ecn.getId()));
+        Object cached = actionCache.get(cacheKey);
+        if (cached != null) {
+            return cached;
         }
-        throw new BizException("不支持的 IR 指令: " + type);
+        synchronized (actionCache) {
+            cached = actionCache.get(cacheKey);
+            if (cached != null) {
+                return cached;
+            }
+            Object created = work.get();
+            actionCache.put(cacheKey, created);
+            return created;
+        }
+    }
+
+    private static String cacheKey(String type, String targetKey, Object idempotencyKey) {
+        if (idempotencyKey == null) {
+            return null;
+        }
+        String key = String.valueOf(idempotencyKey).trim();
+        if (key.isEmpty() || "null".equals(key)) {
+            return null;
+        }
+        return type + "|" + (targetKey == null ? "" : targetKey) + "|" + key;
     }
 
     private void checkKey(String key) {
