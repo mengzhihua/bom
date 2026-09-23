@@ -78,6 +78,11 @@ public class EcnService {
         if (ecn.getBomId() == null) {
             throw new BizException("ECN目标 BOM 不能为空");
         }
+        BomHeader target = boms.selectById(ecn.getBomId());
+        Long taken = ecns.selectCount(new QueryWrapper<Ecn>()
+                .eq("bom_id", ecn.getBomId())
+                .eq("status", "IMPLEMENTED"));
+        requireBoundVersion(target, taken == null ? 0 : taken.intValue());
 
         BomHeader newBom = bomService.newVersion(ecn.getBomId());
         for (EcnItem change : items(id)) {
@@ -93,6 +98,22 @@ public class EcnService {
         ecn.setStatus("IMPLEMENTED");
         ecns.updateById(ecn);
         return ecn;
+    }
+
+    /** 制造 BOM 按版本独占：同一版本已经被实施过，另一张 ECN 不能再改这套结构。 */
+    static void requireBoundVersion(BomHeader target, int implementedOnSameVersion) {
+        if (target == null || target.getVersion() == null) {
+            throw new BizException("ECN 未绑定 BOM 版本");
+        }
+        if (!"MBOM".equals(target.getBomType())) {
+            return;
+        }
+        if (!"RELEASED".equals(target.getStatus()) && !"FROZEN".equals(target.getStatus())) {
+            throw new BizException("ECN 绑定的制造 BOM 版本不可实施: " + target.getStatus());
+        }
+        if (implementedOnSameVersion > 0) {
+            throw new BizException("该制造 BOM 版本已由其他 ECN 实施");
+        }
     }
 
     int applyChange(Long bomId, EcnItem change) {
