@@ -1,5 +1,6 @@
 package com.bom.change.service;
 
+import com.bom.bom.entity.BomHeader;
 import com.bom.bom.service.BomService;
 import com.bom.bom.entity.BomItem;
 import com.bom.change.entity.EcnItem;
@@ -68,5 +69,17 @@ class EcnServiceTest {
         change.setParentPartId(2L);
         change.setOldChildPartId(3L);
         assertThrows(RuntimeException.class, () -> service.applyChange(10L, change));
+    }
+
+    @Test
+    void secondEcnCannotImplementSameMbomVersion() {
+        BomHeader mbom = new BomHeader();
+        mbom.setBomType("MBOM");
+        mbom.setVersion(1);
+        mbom.setStatus("RELEASED");
+        EcnService.requireBoundVersion(mbom, 0);
+        assertThrows(RuntimeException.class, () -> EcnService.requireBoundVersion(mbom, 1));
+        mbom.setStatus("OBSOLETE");
+        assertThrows(RuntimeException.class, () -> EcnService.requireBoundVersion(mbom, 0));
     }
 }
