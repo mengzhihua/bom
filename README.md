@@ -237,6 +237,12 @@ npm run build
 | 用户 | GET/POST/PUT/DELETE | `/system/user/page`、`/system/user/list`、`/system/user/{id}` | 用户分页、列表和维护 |
 | 操作日志 | GET | `/system/oplog/page` | 分页查询审计操作日志 |
 
+## 控制塔对接
+
+BOM / ECN 快照，以及展开、提交、审批、实施，见 [技术方案](docs/技术方案.md)。
+
+这些指令必须带 API Key：`GET /api/open/ir/snapshots`，`POST /api/open/ir/actions`，专用口 `/explode`、`/submit-ecn`、`/approve-ecn`、`/implement-ecn`。控制塔登录模式不调用本系统。
+
 ## 发布包（开箱即用）
 
 前端生产构建打进 Spring Boot 可执行 JAR。三种用法：
