@@ -22,9 +22,16 @@ html="$(curl -sS "http://127.0.0.1:${PORT}/")"
 echo "$html" | grep -qiE '<html|<div id=.app' || { echo "SMOKE FAIL bom: / is not HTML"; exit 1; }
 spa="$(curl -sS -o /tmp/bom-spa.body -w "%{http_code}" "http://127.0.0.1:${PORT}/dashboard")"
 test "$spa" = "200"
-body="$(curl -sS -X POST "http://127.0.0.1:${PORT}/api/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin123"}')"
+body=""
+for _ in $(seq 1 30); do
+  body="$(curl -sS -X POST "http://127.0.0.1:${PORT}/api/auth/login" \
+    -H "Content-Type: application/json" \
+    -d '{"username":"admin","password":"admin123"}' || true)"
+  if echo "$body" | grep -q '"code":0'; then
+    break
+  fi
+  sleep 1
+done
 echo "$body" | grep -q '"code":0' || { echo "SMOKE FAIL bom: login code != 0: $body"; exit 1; }
 echo "$body" | grep -q '"token"' || { echo "SMOKE FAIL bom: login has no token: $body"; exit 1; }
 echo "SMOKE OK bom :$PORT"
