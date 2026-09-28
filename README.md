@@ -245,6 +245,8 @@ npm run build
 
 BOM / ECN 快照，以及展开、提交、审批、实施，见 [技术方案](docs/技术方案.md)。
 
+项目整体介绍（架构、流程、界面截图、进展）见 [项目汇报](docs/项目汇报.md)。
+
 这些指令必须带 API Key：`GET /api/open/ir/snapshots`，`POST /api/open/ir/actions`，专用口 `/explode`、`/submit-ecn`、`/approve-ecn`、`/implement-ecn`。控制塔登录模式不调用本系统。
 
 ## 发布包（开箱即用）
