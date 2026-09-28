@@ -6,12 +6,11 @@ import com.bom.system.auth.PasswordHasher;
 import com.bom.system.auth.TokenService;
 import com.bom.system.entity.User;
 import com.bom.system.mapper.UserMapper;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -21,7 +20,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserService implements ApplicationRunner {
+public class UserService implements SmartInitializingSingleton {
     private static final List<String> ROLES = Arrays.asList(User.ADMIN, User.ENGINEER, User.PLANNER, User.VIEWER);
     private final UserMapper userMapper;
     private final TokenService tokenService;
@@ -29,7 +28,7 @@ public class UserService implements ApplicationRunner {
     private String initialAdminPassword;
     /** 首次启动无任何用户时创建演示账号（口令来自 srm.auth.admin-password / BOM_ADMIN_PASSWORD） */
     @Override
-    public void run(ApplicationArguments args) {
+    public void afterSingletonsInstantiated() {
         createIfMissing("admin", initialAdminPassword, "系统管理员", User.ADMIN, null);
         createIfMissing("eng", "eng123", "产品工程师", User.ENGINEER, null);
         createIfMissing("plan", "plan123", "制造工程师", User.PLANNER, null);

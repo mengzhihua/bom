@@ -1,7 +1,7 @@
 package com.bom.common;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.CommandLineRunner;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -9,7 +9,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class BomSchemaMigration implements CommandLineRunner {
+public class BomSchemaMigration implements SmartInitializingSingleton {
 
     private static final String ECN_BACKFILL_VERSION =
             "ecn_old_usage_condition_backfill";
@@ -36,7 +36,7 @@ public class BomSchemaMigration implements CommandLineRunner {
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    public void run(String... args) {
+    public void afterSingletonsInstantiated() {
         dropLegacyBomNoConstraints();
         ensureVersionConstraint();
         ensureEcnOldUsageCondition();
